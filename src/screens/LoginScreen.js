@@ -7,12 +7,12 @@ import {
   TouchableOpacity, 
   Image, 
   KeyboardAvoidingView, 
-  SafeAreaView,
   ImageBackground,
   Platform,
   ScrollView,
   ActivityIndicator, 
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDispatch } from 'react-redux'; 
 //import { login } from '../reducers/user'; 
