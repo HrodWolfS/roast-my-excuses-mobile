@@ -115,7 +115,7 @@ export default function RegisterScreen({ navigation }) {
           <View style={styles.inner}>
             <View style={styles.logoBlock}>
               <Image
-                source={require("../assets/logo.png")}
+                source={require("../assets/logoo.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />
