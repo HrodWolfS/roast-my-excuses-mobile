@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
   View, 
   Text, 
   StyleSheet, 
-  Button, 
   TextInput, 
   TouchableOpacity, 
   Image, 
@@ -12,32 +11,85 @@ import {
   ImageBackground,
   Platform,
   ScrollView,
+  ActivityIndicator, 
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from "react";
+import { useDispatch } from 'react-redux'; 
+//import { login } from '../reducers/user'; 
 
+export default function LoginScreen({ navigation }) {
 
-export default function LoginScreen() {
+  const dispatch = useDispatch(); 
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleLogin = () => {
+
+    setError(null);
+
+    if (email.length === 0 || password.length === 0) {
+      setError("Nan, t'as vraiment pas le droit d'avoir autant la flemme.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("On a pas les yeux en face des trous?");
+      return;
+    }
+
+    setIsLoading(true);
+
+    fetch('http://localhost3000/users/signin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.result) {
+          console.log('Connexion réussie ! Token :', data.token);
+          dispatch(login({ username: data.username, token: data.token }));
+          setEmail('');
+          setPassword('');
+          setIsLoading(false);
+          navigation.navigate('TabNavigator');
+        } else {
+          setIsLoading(false);
+          setError(data.error || "Email ou mot de passe incorrect.");
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        setIsLoading(false);
+        setError("Impossible de contacter le serveur. Vérifie ta connexion.");
+      });
+  };
+  
+  let submitContent;
+
+  if (isLoading) {
+    submitContent = <ActivityIndicator size="small" color="#0f172a" />;
+  } else {
+    submitContent = <Text style={styles.loginButtonText}>Se connecter</Text>;
+  }
 
   return (
-
     <ImageBackground 
       source={require('../assets/background.jpg')} 
       resizeMode="cover" 
       style={styles.container}
     >
-
       <SafeAreaView style={styles.contentContainer}>
-
         <KeyboardAvoidingView 
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.form}
         >
           <ScrollView 
-            contentContainerStyle={styles.scrollContainer} 
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} 
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
@@ -46,6 +98,8 @@ export default function LoginScreen() {
               <Text style={styles.title}>RoastMyExcuses</Text>
               <Text style={styles.subtitle}>La procrastination s'arrête ici.</Text>
             </View>
+
+            {error && <Text style={{color: 'red', textAlign: 'center', marginBottom: 10}}>{error}</Text>}
 
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -70,24 +124,28 @@ export default function LoginScreen() {
 
             <TouchableOpacity>
               <Text style={styles.forgotPassword}>
-                Mot de passe oublié ? Tant pis pour toi. Vilain.
+                Mot de passe oublié ? Tant pis pour toi. Vilain. 
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.loginButtonContainer}>
+            <TouchableOpacity 
+                style={styles.loginButtonContainer} 
+                onPress={handleLogin}
+                disabled={isLoading} 
+            >
               <LinearGradient
                 colors={['#bef264', '#22d3ee']} 
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.loginButton}
               >
-                <Text style={styles.loginButtonText}>SE CONNECTER</Text>
+                {submitContent}
               </LinearGradient>
             </TouchableOpacity>
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>Pas encore de compte ? </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.createAccountText}>CRÉER UN COMPTE</Text>
               </TouchableOpacity>
             </View>
@@ -97,7 +155,7 @@ export default function LoginScreen() {
       </SafeAreaView>
     </ImageBackground>
   );
-}
+} 
 
 const styles = StyleSheet.create({
 
@@ -119,7 +177,7 @@ const styles = StyleSheet.create({
     height: 300,
     marginTop: 10,
     marginBottom: 10,
-    tintColor: '#d946ef', 
+    tintColor: '#bef264', 
   },
   title: {
     fontSize: 28,
