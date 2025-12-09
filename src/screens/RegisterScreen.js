@@ -1,36 +1,33 @@
-import React, { useState, useEffect } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
   Image,
-  StatusBar,
   ImageBackground,
-  TouchableWithoutFeedback,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
-// Redux désactivé temporairement pour afficher l'écran sans backend
-// import { useDispatch, useSelector } from "react-redux";
-// import { register, clearErrors } from "../redux/userActions";
+import { useDispatch, useSelector } from "react-redux";
+import { clearError, registerUser } from "../redux/slices/authSlice";
 
 export default function RegisterScreen({ navigation }) {
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-  // Écoute du store global (désactivée pour l'instant)
-  // const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
-  const [isLoading, setIsLoading] = useState(false);
-  const error = null;
-  const isAuthenticated = false;
+  const { isLoading, error, isAuthenticated } = useSelector(
+    (state) => state.auth
+  );
 
   // Mémoire locale
-  const [username, setUsername] = useState("");
+  const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [localError, setLocalError] = useState("");
@@ -40,18 +37,18 @@ export default function RegisterScreen({ navigation }) {
     if (isAuthenticated) {
       navigation.reset({
         index: 0,
-        routes: [{ name: "MainTabNavigator" }],
+        routes: [{ name: "Main" }], // Assuming TabNavigator is the main one
       });
     }
   }, [isAuthenticated, navigation]);
 
   const validateInputs = () => {
-    if (!username || !email || !password) {
+    if (!userName || !email || !password) {
       setLocalError("Remplis tout, ne commence pas à flemmarder.");
       return false;
     }
 
-    if (username.length < 3) {
+    if (userName.length < 3) {
       setLocalError("Ton blaze doit faire au moins 3 caractères.");
       return false;
     }
@@ -71,27 +68,12 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const handleRegister = () => {
-    if (!validateInputs()) return;
     setLocalError("");
-    setIsLoading(true);
+    dispatch(clearError());
 
-    fetch("http://localhost:3000/api/auth/check-email?email=" + encodeURIComponent(email))
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.exists) {
-          throw new Error("Cet email est déjà utilisé.");
-        }
-        return fetch("http://localhost:3000/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, email, password }),
-        });
-      })
-      .then(() => navigation.navigate("Login"))
-      .catch((err) => {
-        setLocalError(err.message || "Impossible de contacter le serveur.");
-      })
-      .finally(() => setIsLoading(false));
+    if (!validateInputs()) return;
+
+    dispatch(registerUser({ userName, email, password }));
   };
 
   return (
@@ -115,12 +97,14 @@ export default function RegisterScreen({ navigation }) {
           <View style={styles.inner}>
             <View style={styles.logoBlock}>
               <Image
-                source={require("../assets/logoo.png")}
+                source={require("../assets/logo.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />
               <Text style={styles.brand}>RoastMyExcuses</Text>
-              <Text style={styles.tagline}>La procrastination s'arrête ici.</Text>
+              <Text style={styles.tagline}>
+                La procrastination s'arrête ici.
+              </Text>
             </View>
 
             {localError || error ? (
@@ -133,8 +117,8 @@ export default function RegisterScreen({ navigation }) {
                 style={styles.input}
                 placeholder="bossdelaflemme"
                 placeholderTextColor="#9fb6c9"
-                value={username}
-                onChangeText={setUsername}
+                value={userName}
+                onChangeText={setUserName}
                 autoCapitalize="none"
               />
 
@@ -149,7 +133,9 @@ export default function RegisterScreen({ navigation }) {
                 keyboardType="email-address"
               />
 
-              <Text style={[styles.label, { marginTop: 14 }]}>Mot de passe</Text>
+              <Text style={[styles.label, { marginTop: 14 }]}>
+                Mot de passe
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="8 caractères minimum"
@@ -159,7 +145,11 @@ export default function RegisterScreen({ navigation }) {
                 secureTextEntry
               />
 
-              <TouchableOpacity style={styles.cta} onPress={handleRegister} disabled={isLoading}>
+              <TouchableOpacity
+                style={styles.cta}
+                onPress={handleRegister}
+                disabled={isLoading}
+              >
                 <LinearGradient
                   colors={["#c9ff53", "#26f0ff"]}
                   start={{ x: 0, y: 0.5 }}
@@ -179,7 +169,8 @@ export default function RegisterScreen({ navigation }) {
                 onPress={() => navigation.navigate("Login")}
               >
                 <Text style={styles.bottomLink}>
-                  Déjà un compte ? <Text style={styles.bottomLinkAccent}>SE CONNECTER</Text>
+                  Déjà un compte ?{" "}
+                  <Text style={styles.bottomLinkAccent}>SE CONNECTER</Text>
                 </Text>
               </TouchableOpacity>
             </View>
