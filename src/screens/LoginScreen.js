@@ -1,74 +1,56 @@
-import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  Image, 
-  KeyboardAvoidingView, 
+import { LinearGradient } from "expo-linear-gradient";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
   ImageBackground,
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator, 
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useDispatch } from 'react-redux'; 
-//import { login } from '../reducers/user'; 
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useDispatch, useSelector } from "react-redux";
+import { clearError, loginUser } from "../redux/slices/authSlice";
 
 export default function LoginScreen({ navigation }) {
+  const dispatch = useDispatch();
+  const { isLoading, error } = useSelector((state) => state.auth);
 
-  const dispatch = useDispatch(); 
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [localError, setLocalError] = useState(null);
 
   const handleLogin = () => {
-
-    setError(null);
+    setLocalError(null);
+    dispatch(clearError());
 
     if (email.length === 0 || password.length === 0) {
-      setError("Nan, t'as vraiment pas le droit d'avoir autant la flemme.");
+      setLocalError(
+        "Nan, t'as vraiment pas le droit d'avoir autant la flemme."
+      );
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError("On a pas les yeux en face des trous?");
+      setLocalError("On a pas les yeux en face des trous?");
       return;
     }
 
-    setIsLoading(true);
-
-    fetch('http://localhost3000/users/signin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: password }),
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.result) {
-          console.log('Connexion réussie ! Token :', data.token);
-          dispatch(login({ username: data.username, token: data.token }));
-          setEmail('');
-          setPassword('');
-          setIsLoading(false);
-          navigation.navigate('TabNavigator');
-        } else {
-          setIsLoading(false);
-          setError(data.error || "Email ou mot de passe incorrect.");
-        }
-      })
-      .catch(err => {
-        console.log(err);
-        setIsLoading(false);
-        setError("Impossible de contacter le serveur. Vérifie ta connexion.");
-      });
+    dispatch(loginUser({ email, password })).then((resultAction) => {
+      if (loginUser.fulfilled.match(resultAction)) {
+        setEmail("");
+        setPassword("");
+        navigation.navigate("Main");
+      }
+    });
   };
-  
+
   let submitContent;
 
   if (isLoading) {
@@ -78,33 +60,44 @@ export default function LoginScreen({ navigation }) {
   }
 
   return (
-    <ImageBackground 
-      source={require('../assets/background.jpg')} 
-      resizeMode="cover" 
+    <ImageBackground
+      source={require("../assets/background.jpg")}
+      resizeMode="cover"
       style={styles.container}
     >
       <SafeAreaView style={styles.contentContainer}>
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.form}
         >
-          <ScrollView 
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} 
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.header}>
-              <Image source={require('../assets/logo.png')} style={styles.logo}/>
+              <Image
+                source={require("../assets/logo.png")}
+                style={styles.logo}
+              />
               <Text style={styles.title}>RoastMyExcuses</Text>
-              <Text style={styles.subtitle}>La procrastination s'arrête ici.</Text>
+              <Text style={styles.subtitle}>
+                La procrastination s'arrête ici.
+              </Text>
             </View>
 
-            {error && <Text style={{color: 'red', textAlign: 'center', marginBottom: 10}}>{error}</Text>}
+            {(localError || error) && (
+              <Text
+                style={{ color: "red", textAlign: "center", marginBottom: 10 }}
+              >
+                {localError || error}
+              </Text>
+            )}
 
             <Text style={styles.label}>Email</Text>
             <TextInput
-              style={[styles.input, styles.inputEmail]} 
-              placeholder="bn.email@flemme.com"
+              style={[styles.input, styles.inputEmail]}
+              placeholder="mon.email@flemme.com"
               placeholderTextColor="#64748b"
               value={email}
               onChangeText={setEmail}
@@ -119,22 +112,22 @@ export default function LoginScreen({ navigation }) {
               placeholderTextColor="#64748b"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry={true} 
+              secureTextEntry={true}
             />
 
             <TouchableOpacity>
               <Text style={styles.forgotPassword}>
-                Mot de passe oublié ? Tant pis pour toi. Vilain. 
+                Mot de passe oublié ? Tant pis pour toi. Vilain.
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-                style={styles.loginButtonContainer} 
-                onPress={handleLogin}
-                disabled={isLoading} 
+            <TouchableOpacity
+              style={styles.loginButtonContainer}
+              onPress={handleLogin}
+              disabled={isLoading}
             >
               <LinearGradient
-                colors={['#bef264', '#22d3ee']} 
+                colors={["#bef264", "#22d3ee"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.loginButton}
@@ -145,23 +138,21 @@ export default function LoginScreen({ navigation }) {
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>Pas encore de compte ? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
                 <Text style={styles.createAccountText}>CRÉER UN COMPTE</Text>
               </TouchableOpacity>
             </View>
-
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </ImageBackground>
   );
-} 
+}
 
 const styles = StyleSheet.create({
-
   // 1.CONTENEUR GLOBAL
   container: {
-    flex: 1, 
+    flex: 1,
   },
   contentContainer: {
     flex: 1,
@@ -169,91 +160,91 @@ const styles = StyleSheet.create({
 
   // 2.LE HEADER
   header: {
-    alignItems: 'center', 
-    marginBottom: 40, 
+    alignItems: "center",
+    marginBottom: 40,
   },
   logo: {
     width: 300,
     height: 300,
     marginTop: 10,
     marginBottom: 10,
-    tintColor: '#bef264', 
+    tintColor: "#bef264",
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
     marginBottom: 5,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: '#22d3ee', 
+    color: "#22d3ee",
   },
 
   // 3.FORMULAIRE
   form: {
     flex: 1,
-    width: '100%', 
+    width: "100%",
   },
   label: {
-    color: '#94a3b8',
-    marginBottom: 8, 
+    color: "#94a3b8",
+    marginBottom: 8,
     fontSize: 14,
   },
   input: {
-    backgroundColor: '#1e293b', 
-    borderRadius: 12, 
-    padding: 15, 
-    marginBottom: 20, 
-    color: '#fff', 
-    borderWidth: 1, 
-    borderColor: '#334155', 
+    backgroundColor: "#1e293b",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    color: "#fff",
+    borderWidth: 1,
+    borderColor: "#334155",
   },
   inputEmail: {
-    borderColor: '#bef264', 
-    shadowColor: '#bef264', 
+    borderColor: "#bef264",
+    shadowColor: "#bef264",
     shadowOpacity: 0.3,
     shadowRadius: 5,
-    elevation: 5, 
+    elevation: 5,
   },
   forgotPassword: {
-    color: '#38bdf8',
-    textAlign: 'right', 
+    color: "#38bdf8",
+    textAlign: "right",
     fontSize: 12,
     marginBottom: 30,
   },
 
-  // 4.BOUTONS 
+  // 4.BOUTONS
   loginButtonContainer: {
-    width: '100%',
+    width: "100%",
     borderRadius: 12,
-    overflow: 'hidden', 
+    overflow: "hidden",
     marginBottom: 20,
   },
   loginButton: {
-    paddingVertical: 15, 
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
   },
   loginButtonText: {
-    color: '#0f172a',
-    fontWeight: 'bold',
+    color: "#0f172a",
+    fontWeight: "bold",
     fontSize: 16,
-    letterSpacing: 1, 
+    letterSpacing: 1,
   },
 
-  // 5.FOOTER 
+  // 5.FOOTER
   footer: {
-    flexDirection: 'row', 
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginBottom: 20,
   },
   footerText: {
-    color: '#94a3b8',
+    color: "#94a3b8",
   },
   createAccountText: {
-    color: '#bef264', 
-    fontWeight: 'bold',
+    color: "#bef264",
+    fontWeight: "bold",
   },
 });
