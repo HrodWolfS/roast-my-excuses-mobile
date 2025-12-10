@@ -22,7 +22,7 @@ export default function RoastResultScreen({ navigation }) {
   const currentTask = {
     _id: "test-123",
     roastContent: "Pauvre petite chose fragile. Tu as besoin d'une application pour te dire de travailler ? C'est mignon, mais pathétique.",
-    type: "challenge", // Changez en "roasty" pour tester l'autre affichage
+    type: "challenge", // changer en "roasty" pour tester l'autre affichage
     actionPlan: [
       "Arrête de pleurer",
       "Ouvre ton ordinateur",
@@ -36,11 +36,12 @@ export default function RoastResultScreen({ navigation }) {
       navigation.replace("Main");
     }})
     
-    // Gérer le bouton retour physique (Android) pour éviter de revenir sur le loading
+    // gérer le bouton retour physique sur Android pour éviter de revenir sur le loading -> utile ???
     /*  backHandler = BackHandler.addEventListener("hardwareBackPress", handleGoHome);
     return () => backHandler.remove();
   }, [currentTask]); */
 
+  // permet de reset = pas d'historique et retour propre sur le Feed
   const handleGoHome = () => {
     dispatch(resetCurrentTask()); 
     navigation.reset({
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: "900",
-    color: "#ff4d4d", // Rouge agressif pour le "Verdict"
+    color: "#ff4d4d", 
     textAlign: "center",
     marginBottom: 8,
     textTransform: "uppercase",
@@ -183,13 +184,13 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
 
-  // Roast Card
+  // Roast
   roastContainer: {
     backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 77, 77, 0.3)", // Bordure rougeâtre
+    borderColor: "rgba(255, 77, 77, 0.3)", 
     marginBottom: 30,
   },
   roastText: {
@@ -201,14 +202,14 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Action Plan
+  // Plan d'action
   actionPlanContainer: {
     marginBottom: 30,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#bef264", // Vert lime
+    color: "#bef264", 
     marginBottom: 16,
   },
   stepRow: {
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  // Footer Buttons
+  // Footer + buttons
   footer: {
     marginTop: 10,
     gap: 16,
