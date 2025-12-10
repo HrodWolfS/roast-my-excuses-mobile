@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 // On importe ton instance API configurée (avec le token header auto)
 import api from "../../services/api";
 
@@ -12,7 +12,7 @@ export const createTask = createAsyncThunk(
       // taskData contient { description, excuse, type }
       const response = await api.post("/tasks", taskData);
       // On retourne la tâche créée (qui contient le roast !)
-      return response.data.data.task;
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Erreur lors du roast"
