@@ -17,7 +17,18 @@ import { resetCurrentTask } from "../redux/slices/taskSlices";
 export default function RoastResultScreen({ navigation }) {
 
   const dispatch = useDispatch();
-  const { currentTask } = useSelector((state) => state.tasks);
+  // const { currentTask } = useSelector((state) => state.tasks);
+
+  const currentTask = {
+    _id: "test-123",
+    roastContent: "Pauvre petite chose fragile. Tu as besoin d'une application pour te dire de travailler ? C'est mignon, mais pathétique.",
+    type: "challenge", // Changez en "roasty" pour tester l'autre affichage
+    actionPlan: [
+      "Arrête de pleurer",
+      "Ouvre ton ordinateur",
+      "Écris au moins une ligne de code valide"
+    ]
+  };
 
   // sécurité : pas de tâche en cours = on reload et on renvoie au Feed
   useEffect(() => {
