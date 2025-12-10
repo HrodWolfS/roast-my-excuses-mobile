@@ -1,4 +1,40 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+// On importe ton instance API configurée (avec le token header auto)
+import api from "../../services/api";
+
+// --- THUNKS (Actions Asynchrones) ---
+
+// 1. Créer une tâche (Le cœur du réacteur)
+export const createTask = createAsyncThunk(
+  "tasks/create",
+  async (taskData, { rejectWithValue }) => {
+    try {
+      // taskData contient { description, excuse, type }
+      const response = await api.post("/tasks", taskData);
+      // On retourne la tâche créée (qui contient le roast !)
+      return response.data.data.task;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Erreur lors du roast"
+      );
+    }
+  }
+);
+
+// 2. Récupérer le feed
+export const getFeedTasks = createAsyncThunk(
+  "tasks/getFeed",
+  async ({ page = 1 }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/tasks/feed?page=${page}`);
+      return response.data.data; // Supposons que ça renvoie { tasks, pagination }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Erreur chargement feed"
+      );
+    }
+  }
+);
 
 // --- SLICE ---
 
