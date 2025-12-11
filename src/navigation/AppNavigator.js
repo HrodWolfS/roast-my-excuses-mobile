@@ -15,6 +15,7 @@ import LoginScreen from "../screens/LoginScreen";
 import MyTasksScreen from "../screens/MyTasksScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import RegisterScreen from "../screens/RegisterScreen";
+import RoastResultScreen from "../screens/RoastResultScreen";
 
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -219,11 +220,11 @@ export default function AppNavigator() {
           // --- UTILISATEUR CONNECTÉ ---
           <>
             <Stack.Screen name="Main" component={MainAppTabs} />
-            {/* Groupe Modale, s'affiche par-dessus tout */}
             <Stack.Group
               screenOptions={{ presentation: "modal", headerShown: false }}
             >
               <Stack.Screen name="CreateFlow" component={CreateFlowScreen} />
+              <Stack.Screen name="RoastModal" component={RoastResultScreen} />
             </Stack.Group>
           </>
         ) : (

@@ -1,49 +1,40 @@
-import React, { useEffect } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
+  BackHandler,
   ImageBackground,
   ScrollView,
-  TouchableOpacity,
   StatusBar,
-  BackHandler
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { resetCurrentTask } from "../redux/slices/taskSlices";
 
 export default function RoastResultScreen({ navigation }) {
-
   const dispatch = useDispatch();
-  // const { currentTask } = useSelector((state) => state.tasks);
-
-  const currentTask = {
-    _id: "test-123",
-    roastContent: "Pauvre petite chose fragile. Tu as besoin d'une application pour te dire de travailler ? C'est mignon, mais pathétique.",
-    type: "challenge", // changer en "roasty" pour tester l'autre affichage
-    actionPlan: [
-      "Arrête de pleurer",
-      "Ouvre ton ordinateur",
-      "Écris au moins une ligne de code valide"
-    ]
-  };
+  const { currentTask } = useSelector((state) => state.tasks);
 
   // sécurité : pas de tâche en cours = on reload et on renvoie au Feed
   useEffect(() => {
     if (!currentTask) {
       navigation.replace("Main");
-    }})
-    
-    // gérer le bouton retour physique sur Android pour éviter de revenir sur le loading -> utile ???
-    /*  backHandler = BackHandler.addEventListener("hardwareBackPress", handleGoHome);
+    }
+  });
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      handleGoHome
+    );
     return () => backHandler.remove();
-  }, [currentTask]); */
+  }, [currentTask]);
 
   // permet de reset = pas d'historique et retour propre sur le Feed
   const handleGoHome = () => {
-    dispatch(resetCurrentTask()); 
+    dispatch(resetCurrentTask());
     navigation.reset({
       index: 0,
       routes: [{ name: "Main" }],
@@ -56,45 +47,45 @@ export default function RoastResultScreen({ navigation }) {
   };
 
   const renderActionPlan = () => {
-    if (currentTask.type !== "challenge" || !currentTask.actionPlan){
+    if (currentTask.type !== "challenge" || !currentTask.actionPlan) {
       return null;
-    }
-    else{
+    } else {
       return (
-      <View style={styles.actionPlanContainer}>
-        <Text style={styles.sectionTitle}>Plan de bataille</Text>
-        {currentTask.actionPlan.map((step, index) => (
-          <View key={index} style={styles.stepRow}>
-            <View style={styles.stepBullet}>
-              <Text style={styles.stepNumber}>{index + 1}</Text>
+        <View style={styles.actionPlanContainer}>
+          <Text style={styles.sectionTitle}>Plan de bataille</Text>
+          {currentTask.actionPlan.map((step, index) => (
+            <View key={index} style={styles.stepRow}>
+              <View style={styles.stepBullet}>
+                <Text style={styles.stepNumber}>{index + 1}</Text>
+              </View>
+              <Text style={styles.stepText}>{step}</Text>
             </View>
-            <Text style={styles.stepText}>{step}</Text>
-          </View>
-        ))}
-      </View>
-    );
+          ))}
+        </View>
+      );
     }
   };
 
   const renderStartButton = () => {
-    if (currentTask.type !== "challenge") {return null;}
-    else {
+    if (currentTask.type !== "challenge") {
+      return null;
+    } else {
       return (
-      <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={handleStartFocus}
-      >
-        <LinearGradient
-          colors={["#c9ff53", "#26f0ff"]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={styles.gradientButton}
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={handleStartFocus}
         >
-          <Text style={styles.primaryButtonText}>JE ME LANCE !</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-    };
+          <LinearGradient
+            colors={["#c9ff53", "#26f0ff"]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.gradientButton}
+          >
+            <Text style={styles.primaryButtonText}>JE ME LANCE !</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      );
+    }
   };
 
   if (!currentTask) return null;
@@ -109,11 +100,11 @@ export default function RoastResultScreen({ navigation }) {
         colors={["rgba(4,11,22,0.6)", "rgba(4,11,22,0.95)"]}
         style={styles.gradientOverlay}
       />
-      
+
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="light-content" />
-        
-        <ScrollView 
+
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -123,9 +114,7 @@ export default function RoastResultScreen({ navigation }) {
 
           {/* ROAST */}
           <View style={styles.roastContainer}>
-            <Text style={styles.roastText}>
-              "{currentTask.roastContent}"
-            </Text>
+            <Text style={styles.roastText}>"{currentTask.roastContent}"</Text>
           </View>
 
           {/* PLAN D'ACTION */}
@@ -133,16 +122,17 @@ export default function RoastResultScreen({ navigation }) {
 
           {/* BOUTONS */}
           <View style={styles.footer}>
-
             {/* "Je me lance" */}
             {renderStartButton()}
 
             {/* Retour */}
-            <TouchableOpacity onPress={handleGoHome} style={styles.secondaryButton}>
+            <TouchableOpacity
+              onPress={handleGoHome}
+              style={styles.secondaryButton}
+            >
               <Text style={styles.secondaryButtonText}>Retour à l'accueil</Text>
             </TouchableOpacity>
           </View>
-
         </ScrollView>
       </SafeAreaView>
     </ImageBackground>
@@ -163,12 +153,12 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: 50,
   },
-  
+
   // Header
   headerTitle: {
     fontSize: 34,
     fontWeight: "900",
-    color: "#ff4d4d", 
+    color: "#ff4d4d",
     textAlign: "center",
     marginBottom: 8,
     textTransform: "uppercase",
@@ -190,7 +180,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 77, 77, 0.3)", 
+    borderColor: "rgba(255, 77, 77, 0.3)",
     marginBottom: 30,
   },
   roastText: {
@@ -209,7 +199,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#bef264", 
+    color: "#bef264",
     marginBottom: 16,
   },
   stepRow: {
