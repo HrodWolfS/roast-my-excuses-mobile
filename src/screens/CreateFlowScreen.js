@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLayoutEffect, useState } from "react";
-// ✅ CE QU'IL FAUT AVOIR
+
 import {
   View,
   Text,
