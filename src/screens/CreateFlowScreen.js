@@ -9,7 +9,6 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  SafeAreaView,
   ImageBackground,
   StatusBar,
 } from "react-native";
@@ -71,6 +70,9 @@ export default function CreateFlowScreen({ navigation }) {
   const handleSubmit = async () => {
     // Préparation des données pour le Backend
     // Le backend attend { description, excuse, type }
+    // On lance la validation. Si c'est faux (false), on arrête tout (return).
+    if (!validate()) return;
+    // -----------------------
     const taskData = {
       description: task, // Ton state local s'appelle 'task', le back veut 'description'
       excuse: excuse,
@@ -107,7 +109,7 @@ export default function CreateFlowScreen({ navigation }) {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <StatusBar
           barStyle="light-content"
           backgroundColor="transparent"
@@ -247,7 +249,7 @@ export default function CreateFlowScreen({ navigation }) {
             </View>
           </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
-      </SafeAreaView>
+      </View>
     </ImageBackground>
   );
 }
