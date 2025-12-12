@@ -8,12 +8,15 @@ import api from "../../services/api";
 export const createTask = createAsyncThunk(
   "tasks/create",
   async (taskData, { rejectWithValue }) => {
+    console.log("REDUX THUNK: createTask started with data:", taskData);
     try {
       // taskData contient { description, excuse, type }
       const response = await api.post("/tasks", taskData);
+      console.log("REDUX THUNK: API response received:", response.data);
       // On retourne la tâche créée (qui contient le roast !)
       return response.data.data;
     } catch (error) {
+      console.error("REDUX THUNK: API Error:", error);
       return rejectWithValue(
         error.response?.data?.message || "Erreur lors du roast"
       );
@@ -60,16 +63,19 @@ const taskSlice = createSlice({
     builder
       // --- Gestion de createTask ---
       .addCase(createTask.pending, (state) => {
+        console.log("REDUX REDUCER: createTask.pending");
         state.loading = true;
         state.error = null;
       })
       .addCase(createTask.fulfilled, (state, action) => {
+        console.log("REDUX REDUCER: createTask.fulfilled", action.payload);
         state.loading = false;
         // BINGO : On stocke la réponse ici.
         // L'écran suivant (RoastResult) n'aura qu'à lire state.tasks.currentTask
         state.currentTask = action.payload;
       })
       .addCase(createTask.rejected, (state, action) => {
+        console.log("REDUX REDUCER: createTask.rejected", action.payload);
         state.loading = false;
         state.error = action.payload;
       })
