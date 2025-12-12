@@ -1,4 +1,7 @@
-import React, { useState, useLayoutEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLayoutEffect, useState } from "react";
+// ✅ CE QU'IL FAUT AVOIR
 import {
   View,
   Text,
@@ -12,7 +15,6 @@ import {
   ImageBackground,
   StatusBar,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 // Redux imports
 import { useDispatch, useSelector } from "react-redux";
@@ -133,13 +135,13 @@ export default function CreateFlowScreen({ navigation }) {
             <View style={styles.formContainer}>
               {/* INPUT TÂCHE */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Quelle tâche tu évites ?</Text>
+                <Text style={styles.label}>Tâche à éviter</Text>
                 <TextInput
                   multiline={true}
                   numberOfLines={3}
                   style={[styles.input, errors.task && styles.inputError]}
                   placeholder="Ex: Finir le rapport trimestriel..."
-                  placeholderTextColor={COLORS.textSecondary}
+                  placeholderTextColor="#9fb6c9"
                   value={task}
                   onChangeText={(t) => {
                     setTask(t);
@@ -154,13 +156,13 @@ export default function CreateFlowScreen({ navigation }) {
 
               {/* INPUT EXCUSE */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Pourquoi tu la fais pas ?</Text>
+                <Text style={styles.label}>Excuse / Raison</Text>
                 <TextInput
                   multiline={true}
                   numberOfLines={3}
                   style={[styles.input, errors.excuse && styles.inputError]}
                   placeholder="Ex: J'ai poney aquatique..."
-                  placeholderTextColor={COLORS.textSecondary}
+                  placeholderTextColor="#9fb6c9"
                   value={excuse}
                   onChangeText={(t) => {
                     setExcuse(t);
@@ -233,18 +235,22 @@ export default function CreateFlowScreen({ navigation }) {
 
               <TouchableOpacity
                 style={[
-                  styles.submitButton,
-                  loading && {
-                    opacity: 0.7,
-                    backgroundColor: COLORS.textSecondary,
-                  }, // Style désactivé
+                  styles.submitButtonContainer,
+                  loading && { opacity: 0.7 },
                 ]}
                 onPress={handleSubmit}
-                disabled={loading} // Empêche de cliquer pendant le chargement
+                disabled={loading}
               >
-                <Text style={styles.submitButtonText}>
-                  {loading ? "Chargement..." : "Valider"}
-                </Text>
+                <LinearGradient
+                  colors={["#bef264", "#22d3ee"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.submitButtonGradient}
+                >
+                  <Text style={styles.submitButtonText}>
+                    {loading ? "Chargement..." : "Valider"}
+                  </Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
@@ -287,41 +293,52 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     padding: 20,
+    backgroundColor: "transparent",
   },
   inputGroup: {
     marginBottom: 25,
   },
   label: {
-    color: COLORS.secondary,
-    fontSize: 16,
+    color: "#dce8f7",
     marginBottom: 8,
+    fontSize: 14,
     fontWeight: "600",
   },
   input: {
-    backgroundColor: COLORS.card,
-    color: COLORS.text,
-    padding: 15,
-    borderRadius: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "transparent",
+    backgroundColor: "transparent",
+    borderRadius: 14,
+    borderWidth: 3,
+    borderColor: "#c9ff53",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    color: "#dce8f7",
+    fontSize: 15,
+    shadowColor: "#c9ff53",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
     minHeight: 50,
+    textAlignVertical: "top", // Pour l'alignement du multiline
   },
   inputError: {
     borderColor: COLORS.danger,
+    shadowColor: COLORS.danger,
   },
   errorText: {
     color: COLORS.danger,
     fontSize: 12,
     marginTop: 5,
     marginLeft: 5,
+    fontWeight: "bold",
   },
   toggleContainer: {
     flexDirection: "row",
-    backgroundColor: COLORS.card,
+    backgroundColor: "rgba(13, 18, 31, 0.6)",
     borderRadius: 12,
     padding: 4,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#c9ff53",
   },
   toggleOption: {
     flex: 1,
@@ -330,42 +347,45 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   toggleActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#c9ff53",
   },
   toggleText: {
-    color: COLORS.textSecondary,
+    color: "#9fb6c9",
     fontWeight: "600",
   },
   toggleTextActive: {
-    color: "#000000",
+    color: "#0f172a",
     fontWeight: "bold",
   },
   helperText: {
-    color: COLORS.textSecondary,
+    color: "#9fb6c9",
     fontSize: 12,
     textAlign: "center",
     marginBottom: 20,
+    fontStyle: "italic",
   },
   footer: {
     padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.card,
+    borderTopWidth: 0,
   },
-  submitButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    shadowColor: COLORS.primary,
+  submitButtonContainer: {
+    shadowColor: "#26f0ff",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
+    borderRadius: 16,
+  },
+  submitButtonGradient: {
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: "center",
   },
   submitButtonText: {
-    color: "#000000",
+    color: "#0f172a",
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "800",
     textTransform: "uppercase",
+    letterSpacing: 1,
   },
 });
