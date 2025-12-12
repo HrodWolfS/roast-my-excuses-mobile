@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 import React from "react";
 import { render, act } from "@testing-library/react";
 import { RoastProgressBar } from "../../components/RoastProgressBar";
