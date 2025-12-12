@@ -218,11 +218,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   form: {
-    backgroundColor: "rgba(255,255,255,0.02)",
+    backgroundColor: "transparent",
     borderRadius: 16,
     padding: 18,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
   },
   label: {
     color: "#dce8f7",
@@ -231,17 +229,27 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   input: {
-    backgroundColor: "rgba(8,16,28,0.65)",
+    backgroundColor: "transparent",
     borderRadius: 14,
-    borderWidth: 1.5,
+    borderWidth: 3,
     borderColor: "#c9ff53",
     paddingVertical: 14,
     paddingHorizontal: 16,
     color: "#dce8f7",
     fontSize: 15,
+    shadowColor: "#c9ff53",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
   },
   cta: {
     marginTop: 34,
+    shadowColor: "#26f0ff",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
+    borderRadius: 16, // Added to match gradient radius
   },
   ctaGradient: {
     borderRadius: 16,
