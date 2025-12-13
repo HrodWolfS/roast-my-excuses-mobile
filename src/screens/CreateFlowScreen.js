@@ -1,19 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLayoutEffect, useState } from "react";
-// ✅ CE QU'IL FAUT AVOIR
 import {
-  View,
+  ImageBackground,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
-  Keyboard,
-  ImageBackground,
-  StatusBar,
+  View,
 } from "react-native";
 
 // Redux imports
@@ -25,8 +24,8 @@ import { createTask } from "../redux/slices/taskSlices";
 const COLORS = {
   background: "#040C1E",
   card: "#0D121F",
-  primary: "#4AEF8C", // Neon Green
-  secondary: "#40FAEF", // Neon Cyan
+  primary: "#4AEF8C",
+  secondary: "#40FAEF",
   text: "#FFFFFF",
   textSecondary: "#A6A6A6",
   danger: "#FF5252",
@@ -36,10 +35,9 @@ export default function CreateFlowScreen({ navigation }) {
   // 1. État Local
   const [task, setTask] = useState("");
   const [excuse, setExcuse] = useState("");
-  const [mode, setMode] = useState("challenge"); // 'challenge' | 'roasty'
+  const [mode, setMode] = useState("challenge");
   const [errors, setErrors] = useState({ task: null, excuse: null });
 
-  // Redux hooks et on récupère 'loading' pour gérer l'UI et 'error' pour afficher les soucis API
   const dispatch = useDispatch();
   const { loading, error: apiError } = useSelector((state) => state.tasks);
 
@@ -71,33 +69,20 @@ export default function CreateFlowScreen({ navigation }) {
 
   // 4. Handler de Soumission modififé pour Redux
   const handleSubmit = async () => {
-    // Préparation des données pour le Backend
-    // Le backend attend { description, excuse, type }
-    // On lance la validation. Si c'est faux (false), on arrête tout (return).
     if (!validate()) return;
-    // -----------------------
     const taskData = {
-      description: task, // Ton state local s'appelle 'task', le back veut 'description'
+      description: task,
       excuse: excuse,
       type: mode,
     };
 
     try {
-      // On lance l'action et on attend le résultat
-      // .unwrap() permet de gérer la promesse (success/error) facilement
       await dispatch(createTask(taskData)).unwrap();
-
-      // 4. Navigation (seulement si pas d'erreur)
-      // Peu importe le mode, on veut voir le résultat (Roast ou Plan d'action)
       navigation.navigate("RoastModal");
-
-      // Optionnel : Reset du formulaire ici si besoin
       setTask("");
       setExcuse("");
     } catch (err) {
-      // Si l'API renvoie une erreur (gérée par le rejectWithValue dans le slice)
       console.error("Erreur création task:", err);
-      // Tu peux afficher une alerte ou laisser l'affichage de l'erreur via l'UI
     }
   };
 
@@ -260,7 +245,7 @@ export default function CreateFlowScreen({ navigation }) {
             </View>
           </KeyboardAvoidingView>
         </KeyboardDismissWrapper>
-      </SafeAreaView>
+      </View>
     </ImageBackground>
   );
 }
