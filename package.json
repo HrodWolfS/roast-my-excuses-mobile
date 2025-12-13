@@ -19,6 +19,7 @@
     "axios": "^1.13.2",
     "expo": "~54.0.27",
     "expo-ads-admob": "^13.0.0",
+    "expo-blur": "~15.0.8",
     "expo-linear-gradient": "~15.0.8",
     "expo-notifications": "~0.32.14",
     "expo-status-bar": "~3.0.9",
