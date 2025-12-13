@@ -1,4 +1,5 @@
 import { ImageBackground, StyleSheet, Text, View } from "react-native";
+import CircularTimer from "../components/CircularTimer";
 
 export default function FeedScreen() {
   return (
@@ -9,6 +10,7 @@ export default function FeedScreen() {
     >
       <View style={styles.container}>
         <Text style={styles.text}>FeedScreen</Text>
+        <CircularTimer duration={20} onComplete={() => console.log("Done")} />
       </View>
     </ImageBackground>
   );

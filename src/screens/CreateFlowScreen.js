@@ -101,156 +101,151 @@ export default function CreateFlowScreen({ navigation }) {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      <BlurView intensity={80} tint="dark" style={styles.blurContainer}>
-        <View style={styles.overlay}>
-          <View style={styles.safeArea}>
-            <StatusBar
-              barStyle="light-content"
-              backgroundColor="transparent"
-              translucent
-            />
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>Nouvelle Excuse</Text>
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={styles.closeButton}
-              >
-                <Ionicons name="close" size={28} color={COLORS.text} />
-              </TouchableOpacity>
+      <View style={styles.safeArea}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="transparent"
+          translucent
+        />
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Nouvelle Excuse</Text>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.closeButton}
+          >
+            <Ionicons name="close" size={28} color={COLORS.text} />
+          </TouchableOpacity>
+        </View>
+
+        <KeyboardDismissWrapper>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.container}
+          >
+            <View style={styles.formContainer}>
+              {/* INPUT TÂCHE */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Tâche à éviter</Text>
+                <TextInput
+                  multiline={true}
+                  numberOfLines={3}
+                  style={[styles.input, errors.task && styles.inputError]}
+                  placeholder="Ex: Finir le rapport trimestriel..."
+                  placeholderTextColor="#9fb6c9"
+                  value={task}
+                  onChangeText={(t) => {
+                    setTask(t);
+                    if (errors.task) setErrors({ ...errors, task: null });
+                  }}
+                  maxLength={100}
+                />
+                {errors.task && (
+                  <Text style={styles.errorText}>{errors.task}</Text>
+                )}
+              </View>
+
+              {/* INPUT EXCUSE */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Excuse / Raison</Text>
+                <TextInput
+                  multiline={true}
+                  numberOfLines={3}
+                  style={[styles.input, errors.excuse && styles.inputError]}
+                  placeholder="Ex: J'ai poney aquatique..."
+                  placeholderTextColor="#9fb6c9"
+                  value={excuse}
+                  onChangeText={(t) => {
+                    setExcuse(t);
+                    if (errors.excuse) setErrors({ ...errors, excuse: null });
+                  }}
+                  maxLength={200}
+                />
+                {errors.excuse && (
+                  <Text style={styles.errorText}>{errors.excuse}</Text>
+                )}
+              </View>
+
+              {/* TOGGLE MODE */}
+              <View style={styles.toggleContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleOption,
+                    mode === "challenge" && styles.toggleActive,
+                  ]}
+                  onPress={() => setMode("challenge")}
+                >
+                  <Text
+                    style={[
+                      styles.toggleText,
+                      mode === "challenge" && styles.toggleTextActive,
+                    ]}
+                  >
+                    Challenge
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.toggleOption,
+                    mode === "roasty" && styles.toggleActive,
+                  ]}
+                  onPress={() => setMode("roasty")}
+                >
+                  <Text
+                    style={[
+                      styles.toggleText,
+                      mode === "roasty" && styles.toggleTextActive,
+                    ]}
+                  >
+                    Roasty
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.helperText}>
+                {mode === "challenge"
+                  ? "Reçois un plan d'action et lance un timer."
+                  : "Juste un roast brutal pour rire."}
+              </Text>
             </View>
 
-            <KeyboardDismissWrapper>
-              <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={styles.container}
+            {/* BOUTON VALIDER */}
+            <View style={styles.footer}>
+              {/* Affichage de l'erreur API si elle existe */}
+              {apiError && (
+                <Text
+                  style={{
+                    color: COLORS.danger,
+                    textAlign: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  {apiError}
+                </Text>
+              )}
+
+              <TouchableOpacity
+                style={[
+                  styles.submitButtonContainer,
+                  loading && { opacity: 0.7 },
+                ]}
+                onPress={handleSubmit}
+                disabled={loading}
               >
-                <View style={styles.formContainer}>
-                  {/* INPUT TÂCHE */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Tâche à éviter</Text>
-                    <TextInput
-                      multiline={true}
-                      numberOfLines={3}
-                      style={[styles.input, errors.task && styles.inputError]}
-                      placeholder="Ex: Finir le rapport trimestriel..."
-                      placeholderTextColor="#9fb6c9"
-                      value={task}
-                      onChangeText={(t) => {
-                        setTask(t);
-                        if (errors.task) setErrors({ ...errors, task: null });
-                      }}
-                      maxLength={100}
-                    />
-                    {errors.task && (
-                      <Text style={styles.errorText}>{errors.task}</Text>
-                    )}
-                  </View>
-
-                  {/* INPUT EXCUSE */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Excuse / Raison</Text>
-                    <TextInput
-                      multiline={true}
-                      numberOfLines={3}
-                      style={[styles.input, errors.excuse && styles.inputError]}
-                      placeholder="Ex: J'ai poney aquatique..."
-                      placeholderTextColor="#9fb6c9"
-                      value={excuse}
-                      onChangeText={(t) => {
-                        setExcuse(t);
-                        if (errors.excuse)
-                          setErrors({ ...errors, excuse: null });
-                      }}
-                      maxLength={200}
-                    />
-                    {errors.excuse && (
-                      <Text style={styles.errorText}>{errors.excuse}</Text>
-                    )}
-                  </View>
-
-                  {/* TOGGLE MODE */}
-                  <View style={styles.toggleContainer}>
-                    <TouchableOpacity
-                      style={[
-                        styles.toggleOption,
-                        mode === "challenge" && styles.toggleActive,
-                      ]}
-                      onPress={() => setMode("challenge")}
-                    >
-                      <Text
-                        style={[
-                          styles.toggleText,
-                          mode === "challenge" && styles.toggleTextActive,
-                        ]}
-                      >
-                        Challenge
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.toggleOption,
-                        mode === "roasty" && styles.toggleActive,
-                      ]}
-                      onPress={() => setMode("roasty")}
-                    >
-                      <Text
-                        style={[
-                          styles.toggleText,
-                          mode === "roasty" && styles.toggleTextActive,
-                        ]}
-                      >
-                        Roasty
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={styles.helperText}>
-                    {mode === "challenge"
-                      ? "Reçois un plan d'action et lance un timer."
-                      : "Juste un roast brutal pour rire."}
+                <LinearGradient
+                  colors={["#bef264", "#22d3ee"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.submitButtonGradient}
+                >
+                  <Text style={styles.submitButtonText}>
+                    {loading ? "Chargement..." : "Valider"}
                   </Text>
-                </View>
-
-                {/* BOUTON VALIDER */}
-                <View style={styles.footer}>
-                  {/* Affichage de l'erreur API si elle existe */}
-                  {apiError && (
-                    <Text
-                      style={{
-                        color: COLORS.danger,
-                        textAlign: "center",
-                        marginBottom: 10,
-                      }}
-                    >
-                      {apiError}
-                    </Text>
-                  )}
-
-                  <TouchableOpacity
-                    style={[
-                      styles.submitButtonContainer,
-                      loading && { opacity: 0.7 },
-                    ]}
-                    onPress={handleSubmit}
-                    disabled={loading}
-                  >
-                    <LinearGradient
-                      colors={["#bef264", "#22d3ee"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.submitButtonGradient}
-                    >
-                      <Text style={styles.submitButtonText}>
-                        {loading ? "Chargement..." : "Valider"}
-                      </Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              </KeyboardAvoidingView>
-            </KeyboardDismissWrapper>
-          </View>
-        </View>
-      </BlurView>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </KeyboardDismissWrapper>
+      </View>
     </ImageBackground>
   );
 }
@@ -269,12 +264,10 @@ const KeyboardDismissWrapper = ({ children }) => {
 };
 
 const styles = StyleSheet.create({
-  blurContainer: {
+  backgroundImage: {
     flex: 1,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.75)", // #0f172a avec opacité
+    width: "100%",
+    height: "100%",
   },
   safeArea: {
     flex: 1,
@@ -328,7 +321,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 10,
     minHeight: 50,
-    textAlignVertical: "top",
+    textAlignVertical: "top", // Pour l'alignement du multiline
   },
   inputError: {
     borderColor: COLORS.danger,
