@@ -1,19 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLayoutEffect, useState } from "react";
+// ✅ CE QU'IL FAUT AVOIR
 import {
-  ImageBackground,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
+  View,
   Text,
   TextInput,
   TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
   TouchableWithoutFeedback,
-  View,
+  Keyboard,
+  ImageBackground,
+  StatusBar,
 } from "react-native";
 
 // Redux imports
@@ -73,6 +73,9 @@ export default function CreateFlowScreen({ navigation }) {
   const handleSubmit = async () => {
     // Préparation des données pour le Backend
     // Le backend attend { description, excuse, type }
+    // On lance la validation. Si c'est faux (false), on arrête tout (return).
+    if (!validate()) return;
+    // -----------------------
     const taskData = {
       description: task, // Ton state local s'appelle 'task', le back veut 'description'
       excuse: excuse,
@@ -113,13 +116,7 @@ export default function CreateFlowScreen({ navigation }) {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      <LinearGradient
-        colors={["rgba(4,11,22,0.35)", "rgba(4,11,22,0.8)"]}
-        style={StyleSheet.absoluteFillObject}
-        start={{ x: 0.2, y: 0 }}
-        end={{ x: 0.8, y: 1 }}
-      />
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <StatusBar
           barStyle="light-content"
           backgroundColor="transparent"

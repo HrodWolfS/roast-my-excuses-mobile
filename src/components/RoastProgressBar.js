@@ -95,7 +95,7 @@ export const RoastProgressBar = ({
         }
 
         if (next >= 100) {
-          setMessage("C'est bon, j'ai fini de te juger. Pour l'instant.");
+          setMessage("C'est bon, j'ai fini de te juger.");
 
           if (onFinished) {
             onFinished();
