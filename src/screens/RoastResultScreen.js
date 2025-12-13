@@ -58,7 +58,9 @@ export default function RoastResultScreen({ navigation }) {
               <View style={styles.stepBullet}>
                 <Text style={styles.stepNumber}>{index + 1}</Text>
               </View>
-              <Text style={styles.stepText}>{step}</Text>
+              <Text style={styles.stepText}>
+                {step.replace(/^Étape \d+\s*:\s*/i, "")}
+              </Text>
             </View>
           ))}
         </View>

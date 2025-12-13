@@ -18,6 +18,7 @@ import {
 
 // Redux imports
 import { useDispatch, useSelector } from "react-redux";
+import { RoastProgressBar } from "../components/RoastProgressBar";
 import { createTask } from "../redux/slices/taskSlices";
 
 // Design System Colors
@@ -87,13 +88,8 @@ export default function CreateFlowScreen({ navigation }) {
       await dispatch(createTask(taskData)).unwrap();
 
       // 4. Navigation (seulement si pas d'erreur)
-      if (mode === "roasty") {
-        // On passe les infos, mais le RoastResult ira lire le store Redux de toute façon
-        navigation.navigate("RoastModal");
-      } else {
-        // Mode Challenge : retour au feed (le feed devra se rafraîchir)
-        navigation.goBack();
-      }
+      // Peu importe le mode, on veut voir le résultat (Roast ou Plan d'action)
+      navigation.navigate("RoastModal");
 
       // Optionnel : Reset du formulaire ici si besoin
       setTask("");
@@ -104,6 +100,15 @@ export default function CreateFlowScreen({ navigation }) {
       // Tu peux afficher une alerte ou laisser l'affichage de l'erreur via l'UI
     }
   };
+
+  if (loading) {
+    return (
+      <RoastProgressBar
+        isActive={true}
+        label="Analyse de ton incompétence à venir..."
+      />
+    );
+  }
 
   return (
     <ImageBackground
@@ -127,7 +132,7 @@ export default function CreateFlowScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardDismissWrapper>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.container}
@@ -254,11 +259,24 @@ export default function CreateFlowScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
-        </TouchableWithoutFeedback>
-      </View>
+        </KeyboardDismissWrapper>
+      </SafeAreaView>
     </ImageBackground>
   );
 }
+
+// Wrapper pour gérer le dismiss keyboard uniquement sur mobile
+// Sur Web, TouchableWithoutFeedback peut bloquer le focus des inputs
+const KeyboardDismissWrapper = ({ children }) => {
+  if (Platform.OS === "web") {
+    return <View style={{ flex: 1 }}>{children}</View>;
+  }
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      {children}
+    </TouchableWithoutFeedback>
+  );
+};
 
 const styles = StyleSheet.create({
   backgroundImage: {
