@@ -37,6 +37,22 @@ export const getFeedTasks = createAsyncThunk(
       );
     }
   }
+  }
+);
+
+// 3. Mettre à jour le statut (ex: pending -> in_progress -> done)
+export const updateTaskStatus = createAsyncThunk(
+  "tasks/updateStatus",
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/tasks/${id}/status`, { status });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Erreur update status"
+      );
+    }
+  }
 );
 
 // --- SLICE ---
@@ -93,6 +109,22 @@ const taskSlice = createSlice({
         state.loading = false;
         // On ne bloque pas l'user si le feed plante, on log juste
         console.error("Feed error", action.payload);
+      })
+      
+      // --- Gestion de updateTaskStatus ---
+      .addCase(updateTaskStatus.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateTaskStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        // Si c'est la tâche courante qu'on met à jour, on update le state
+        if (state.currentTask && state.currentTask._id === action.payload._id) {
+          state.currentTask = action.payload;
+        }
+      })
+      .addCase(updateTaskStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
