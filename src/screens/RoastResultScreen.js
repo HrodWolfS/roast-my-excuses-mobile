@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import { resetCurrentTask } from "../redux/slices/taskSlices";
+import { resetCurrentTask, updateTaskStatus } from "../redux/slices/taskSlices";
 
 export default function RoastResultScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -42,8 +42,18 @@ export default function RoastResultScreen({ navigation }) {
     return true;
   };
 
-  const handleStartFocus = () => {
-    navigation.navigate("Tâches");
+  const handleStartFocus = async () => {
+    try {
+      await dispatch(
+        updateTaskStatus({
+          id: currentTask._id,
+          status: "in_progress",
+        })
+      ).unwrap();
+      navigation.navigate("Focus");
+    } catch (error) {
+      console.error("Erreur start focus:", error);
+    }
   };
 
   const renderActionPlan = () => {
@@ -132,7 +142,9 @@ export default function RoastResultScreen({ navigation }) {
               onPress={handleGoHome}
               style={styles.secondaryButton}
             >
-              <Text style={styles.secondaryButtonText}>Retour à l'accueil</Text>
+              <Text style={styles.secondaryButtonText}>
+                Je préfère rien faire, comme toujours.
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
