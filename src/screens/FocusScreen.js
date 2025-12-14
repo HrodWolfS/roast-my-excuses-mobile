@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import {
   Alert,
+  BackHandler,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -10,37 +13,82 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import CircularTimer from "../components/CircularTimer";
+import { updateTaskStatus } from "../redux/slices/taskSlices";
 
 // Palette Neon
-const COLORS = {
-  background: "#040C1E",
-  text: "#FFFFFF",
-  danger: "#FF5252",
-  success: "#4AEF8C",
-  secondary: "#94a3b8",
-  card: "#0D121F",
-};
 
 export default function FocusScreen({ navigation }) {
   const dispatch = useDispatch();
   const { currentTask } = useSelector((state) => state.tasks);
+  const [checkedSteps, setCheckedSteps] = useState({});
 
-  // Durée dynamique depuis l'IA (en minutes -> secondes) ou 25 min par défaut
-  const [isPlaying, setIsPlaying] = useState(true);
-  const duration = (currentTask?.timerDuration || 25) * 60;
+  // 1. Bloquer le retour arrière
+  useEffect(() => {
+    // Désactiver le geste de retour (iOS)
+    navigation.setOptions({
+      gestureEnabled: false,
+      headerLeft: () => null, // Cacher bouton retour natif si présent
+    });
+
+    // Bloquer le bouton physique (Android)
+    const backAction = () => {
+      Alert.alert("Interdit !", "Pas de fuite possible. Assume ou abandonne.", [
+        { text: "OK", onPress: () => null, style: "cancel" },
+      ]);
+      return true; // Bloque l'action par défaut
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]);
+
+  // Durée dynamique depuis l'IA (en secondes) ou 25 min par défaut (1500s)
+  // const [isPlaying, setIsPlaying] = useState(true); // PLUS DE PAUSE
+  const duration = currentTask?.timerDuration || 25 * 60;
+
+  // Calcul du temps restant en fonction du startedAt
+  let initialRemainingTime = duration;
+  if (currentTask?.startedAt) {
+    const startTime = new Date(currentTask.startedAt).getTime();
+    const now = new Date().getTime();
+    const elapsedSeconds = Math.floor((now - startTime) / 1000);
+    initialRemainingTime = Math.max(0, duration - elapsedSeconds);
+  }
+
+  const toggleStep = (index) => {
+    setCheckedSteps((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
 
   const handleTimerComplete = () => {
-    // TODO: Dispatch action to mark task as 'done'
-    Alert.alert(
-      "🔥 Session terminée !",
-      "Tu as survécu à ta procrastination.",
-      [
-        {
-          text: "Voir le résultat",
-          onPress: () => navigation.navigate("Main"), // Retour au feed/liste
-        },
-      ]
-    );
+    // Dispatch action to mark task as 'completed'
+    dispatch(updateTaskStatus({ id: currentTask._id, status: "completed" }))
+      .unwrap()
+      .then((data) => {
+        Alert.alert(
+          "🔥 Session terminée !",
+          `Tu as gagné ${data.pointsEarned || 0} points !`,
+          [
+            {
+              text: "Voir le résultat",
+              onPress: () =>
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "Main" }],
+                }),
+            },
+          ]
+        );
+      })
+      .catch((err) => {
+        Alert.alert("Erreur", "Impossible de valider la tâche.");
+      });
   };
 
   const handleGiveUp = () => {
@@ -50,15 +98,23 @@ export default function FocusScreen({ navigation }) {
         text: "Oui, je suis faible",
         style: "destructive",
         onPress: () => {
-          // TODO: Dispatch action to mark task as 'abandoned' if needed
-          navigation.navigate("Main");
+          dispatch(
+            updateTaskStatus({ id: currentTask._id, status: "abandoned" })
+          )
+            .unwrap()
+            .then(() => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Main" }],
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              Alert.alert("Erreur", "Impossible d'abandonner");
+            });
         },
       },
     ]);
-  };
-
-  const handleSpaceOut = () => {
-    setIsPlaying(!isPlaying);
   };
 
   // Fallback si pas de tâche (accès direct)
@@ -71,8 +127,15 @@ export default function FocusScreen({ navigation }) {
         ]}
       >
         <Text style={styles.text}>Aucune tâche en cours.</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Main")}>
-          <Text style={{ color: COLORS.success, marginTop: 20 }}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Main" }],
+            })
+          }
+        >
+          <Text style={{ color: "#4AEF8C", marginTop: 20 }}>
             Retour à l'accueil
           </Text>
         </TouchableOpacity>
@@ -82,11 +145,10 @@ export default function FocusScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor="#040C1E" />
       <SafeAreaView style={styles.safeArea}>
         {/* HEADER */}
         <View style={styles.header}>
-          <Text style={styles.headerEmoji}>🛡️</Text>
           <Text style={styles.headerTitle}>SHUT UP & WORK</Text>
           <Text style={styles.subHeader}>
             Ta mission :{" "}
@@ -94,22 +156,50 @@ export default function FocusScreen({ navigation }) {
           </Text>
         </View>
 
-        {/* TIMER CENTRAL */}
-        <View style={styles.timerContainer}>
-          <CircularTimer
-            duration={duration}
-            onComplete={handleTimerComplete}
-            isPlaying={isPlaying}
-          />
-        </View>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* TIMER CENTRAL */}
+          <View style={styles.timerContainer}>
+            <CircularTimer
+              duration={duration}
+              initialRemainingTime={initialRemainingTime}
+              onComplete={handleTimerComplete}
+              isPlaying={true}
+            />
+          </View>
+
+          {/* ACTION PLAN */}
+          <View style={styles.actionPlanContainer}>
+            <Text style={styles.sectionTitle}>TA TODO LIST :</Text>
+            {currentTask.actionPlan?.map((step, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.stepItem,
+                  checkedSteps[index] && styles.stepItemChecked,
+                ]}
+                onPress={() => toggleStep(index)}
+              >
+                <Ionicons
+                  name={checkedSteps[index] ? "checkbox" : "square-outline"}
+                  size={24}
+                  color={checkedSteps[index] ? "#4AEF8C" : "#94a3b8"}
+                />
+                <Text
+                  style={[
+                    styles.stepText,
+                    checkedSteps[index] && styles.stepTextChecked,
+                  ]}
+                >
+                  {step}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
 
         {/* FOOTER ACTIONS */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.pauseButton} onPress={handleSpaceOut}>
-            <Text style={styles.pauseButtonText}>
-              {isPlaying ? "Pause" : "Reprendre"}
-            </Text>
-          </TouchableOpacity>
+          {/* PLUS DE BOUTON PAUSE */}
 
           <TouchableOpacity onPress={handleGiveUp} style={styles.giveUpButton}>
             <Text style={styles.giveUpText}>J'abandonne (Honteux)</Text>
@@ -123,55 +213,97 @@ export default function FocusScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: "#040C1E",
   },
   safeArea: {
     flex: 1,
-    justifyContent: "space-between",
-    padding: 24,
+  },
+  scrollContent: {
+    paddingBottom: 100, // Espace pour le footer
   },
   text: {
-    color: COLORS.text,
+    color: "#FFFFFF",
     fontSize: 16,
   },
   header: {
     alignItems: "center",
-    marginTop: 20,
-  },
-  headerEmoji: {
-    fontSize: 40,
-    marginBottom: 10,
+    marginTop: 10,
+    marginBottom: 20,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: "900",
-    color: COLORS.success,
+    color: "#4AEF8C",
     letterSpacing: 1.5,
     textTransform: "uppercase",
     textAlign: "center",
   },
   subHeader: {
-    color: COLORS.secondary,
+    color: "#94a3b8",
     fontSize: 16,
     textAlign: "center",
-    marginTop: 15,
+    marginTop: 10,
     lineHeight: 24,
     paddingHorizontal: 20,
   },
   missionText: {
-    color: COLORS.text,
+    color: "#FFFFFF",
     fontWeight: "bold",
     fontStyle: "italic",
   },
   timerContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginVertical: 40,
+    marginVertical: 20,
+  },
+  actionPlanContainer: {
+    paddingHorizontal: 24,
+    marginTop: 10,
+  },
+  sectionTitle: {
+    color: "#94a3b8",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  stepItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#0D121F",
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  stepItemChecked: {
+    borderColor: "rgba(74, 239, 140, 0.3)",
+    backgroundColor: "rgba(74, 239, 140, 0.05)",
+  },
+  stepText: {
+    color: "#FFFFFF",
+    marginLeft: 15,
+    fontSize: 15,
+    flex: 1,
+    lineHeight: 22,
+  },
+  stepTextChecked: {
+    textDecorationLine: "line-through",
+    color: "#94a3b8",
+    opacity: 0.7,
   },
   footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     alignItems: "center",
-    marginBottom: 20,
-    gap: 20,
+    paddingBottom: 30,
+    paddingTop: 20,
+    backgroundColor: "#040C1E", // Cache le contenu scrollé
+    gap: 15,
   },
   pauseButton: {
     paddingVertical: 12,
@@ -182,14 +314,14 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.2)",
   },
   pauseButtonText: {
-    color: COLORS.text,
+    color: "#FFFFFF",
     fontWeight: "600",
   },
   giveUpButton: {
     padding: 10,
   },
   giveUpText: {
-    color: COLORS.danger,
+    color: "#FF5252",
     textDecorationLine: "underline",
     fontSize: 14,
     opacity: 0.8,
