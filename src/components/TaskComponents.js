@@ -14,8 +14,8 @@ export const FilterTab = ({ title, value, active, onPress }) => (
 export const StatusBadge = ({ status }) => {
   const getStyle = () => {
     switch (status) {
-      case "in_progress":
-        return { bg: "#FFF3CD", text: "#856404", label: "⏳ En cours" };
+      case "abandoned":
+        return { bg: "#F8D7DA", text: "#721C24", label: "🏳️ Abandon" };
       case "completed":
         return { bg: "#D4EDDA", text: "#155724", label: "✅ Fait" };
       default:
@@ -40,9 +40,8 @@ export const EmptyState = ({ filter, navigation }) => {
   if (filter === "pending") {
     message = "Aucune excuse en attente ? C'est louche.";
     cta = "Roaster une excuse";
-  } else if (filter === "in_progress") {
-    message = "Tu ne bosses sur rien ? Allez, lance un timer !";
-    // Si pas de tache en cours, on renvoie vers la création aussi
+  } else if (filter === "abandoned") {
+    message = "Aucun abandon ? Impressionnant (ou tu mens).";
   } else if (filter === "completed") {
     message = "Rien de fini... La procrastination gagne du terrain.";
   }

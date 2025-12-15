@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   ImageBackground,
+  Modal,
   RefreshControl,
   StyleSheet,
   Text,
@@ -14,12 +15,16 @@ import {
   FilterTab,
   StatusBadge,
 } from "../components/TaskComponents";
-import { getMyTasks } from "../redux/slices/taskSlices";
+import { getMyTasks, setCurrentTask } from "../redux/slices/taskSlices";
 
 export default function TasksScreen({ navigation }) {
   const dispatch = useDispatch();
   const { tasks, loading } = useSelector((state) => state.tasks);
-  const [activeFilter, setActiveFilter] = useState("pending"); // 'pending', 'in_progress', 'completed'
+  const [activeFilter, setActiveFilter] = useState("pending"); // 'pending', 'abandoned', 'completed'
+
+  // Modal State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   // Chargement initial
   useEffect(() => {
@@ -30,16 +35,29 @@ export default function TasksScreen({ navigation }) {
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       if (activeFilter === "pending") return task.status === "pending";
-      if (activeFilter === "in_progress") return task.status === "in_progress";
+      if (activeFilter === "abandoned") return task.status === "abandoned";
       if (activeFilter === "completed") return task.status === "completed";
       return true;
     });
   }, [tasks, activeFilter]);
 
+  // Interaction Logic
+  const handleTaskPress = (item) => {
+    if (item.status === "pending") {
+      // Si pending -> On set la tâche active et on lance le flow
+      dispatch(setCurrentTask(item));
+      navigation.navigate("RoastModal", { taskId: item._id });
+    } else {
+      // Si fini ou abandonné -> On affiche le roast (ou l'historique)
+      setSelectedTask(item);
+      setModalVisible(true);
+    }
+  };
+
   const renderTaskItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate("RoastResult", { taskId: item._id })}
+      onPress={() => handleTaskPress(item)}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
@@ -76,8 +94,8 @@ export default function TasksScreen({ navigation }) {
               onPress={setActiveFilter}
             />
             <FilterTab
-              title="En cours"
-              value="in_progress"
+              title="Abandons"
+              value="abandoned"
               active={activeFilter}
               onPress={setActiveFilter}
             />
@@ -99,7 +117,7 @@ export default function TasksScreen({ navigation }) {
               <RefreshControl
                 refreshing={loading}
                 onRefresh={() => dispatch(getMyTasks())}
-                tintColor="#FFFFFF" // Spinner blanc pour le fond sombre
+                tintColor="#FFFFFF"
               />
             }
             ListEmptyComponent={
@@ -107,6 +125,33 @@ export default function TasksScreen({ navigation }) {
             }
           />
         </View>
+
+        {/* --- ROAST MODAL --- */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {selectedTask?.status === "completed"
+                  ? "🔥 Roast de Victoire"
+                  : "🏳️ Roast d'Abandon"}
+              </Text>
+              <Text style={styles.modalText}>
+                "{selectedTask?.roastContent}"
+              </Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Fermer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     </ImageBackground>
   );
@@ -120,7 +165,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(4, 12, 30, 0.85)", // Calque sombre pour lisibilité
+    backgroundColor: "rgba(4, 12, 30, 0.85)",
   },
   container: {
     flex: 1,
@@ -131,7 +176,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginLeft: 20,
     marginBottom: 20,
-    color: "#FFFFFF", // Texte blanc
+    color: "#FFFFFF",
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -144,9 +189,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 100,
   },
-  // Card styling adapted for dark bg
   card: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)", // Glass effect
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     padding: 15,
     borderRadius: 12,
     marginBottom: 12,
@@ -174,7 +218,7 @@ const styles = StyleSheet.create({
   points: {
     marginTop: 8,
     alignSelf: "flex-start",
-    color: "#4AEF8C", // Neon green
+    color: "#4AEF8C",
     fontWeight: "bold",
     fontSize: 12,
     backgroundColor: "rgba(74, 239, 140, 0.1)",
@@ -182,5 +226,47 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
     overflow: "hidden",
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "#0D121F",
+    padding: 24,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#4AEF8C",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#4AEF8C",
+    marginBottom: 16,
+    textTransform: "uppercase",
+  },
+  modalText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 24,
+    fontStyle: "italic",
+  },
+  modalButton: {
+    backgroundColor: "#4AEF8C",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: "#040C1E",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
