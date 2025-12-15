@@ -15,7 +15,7 @@ export default function QuotaModal({ visible, onNavigateToFeed, onClose }) {
         <View style={styles.modalContainer}>
           
           <View style={styles.iconContainer}>
-            <FontAwesome name="thumbs-up" size={32} color="#bef264" />
+            <FontAwesome name="hand-stop-o" size={32} color="#bef264" />
           </View>
 
           <Text style={styles.title}>Quota journalier atteint</Text>

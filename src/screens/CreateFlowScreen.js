@@ -86,7 +86,7 @@ export default function CreateFlowScreen({ navigation }) {
       setExcuse("");
     } catch (err) {
       console.error("Erreur création task:", err);
-      if (err.status === 429) {
+      if (err.status === 403) {
         setQuotaModalVisible(true);
       }
     }
