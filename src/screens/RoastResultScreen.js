@@ -19,8 +19,6 @@ export default function RoastResultScreen({ navigation }) {
 
   // sécurité : pas de tâche en cours = on reload et on renvoie au Feed
   useEffect(() => {
-  // sécurité : pas de tâche en cours = on reload et on renvoie au Feed
-  useEffect(() => {
     if (!currentTask) {
       navigation.replace("Main");
     }
