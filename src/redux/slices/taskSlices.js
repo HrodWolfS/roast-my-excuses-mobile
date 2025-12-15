@@ -17,9 +17,10 @@ export const createTask = createAsyncThunk(
       return response.data.data;
     } catch (error) {
       console.error("REDUX THUNK: API Error:", error);
-      return rejectWithValue(
-        error.response?.data?.message || "Erreur lors du roast"
-      );
+      return rejectWithValue({
+        message: error.response?.data?.message || "Erreur lors du roast",
+        status: error.response?.status 
+      });
     }
   }
 );
@@ -137,7 +138,7 @@ const taskSlice = createSlice({
       .addCase(createTask.rejected, (state, action) => {
         console.log("REDUX REDUCER: createTask.rejected", action.payload);
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || "Une erreur est survenue";
       })
 
       // --- Gestion de getFeedTasks (Préparation) ---
