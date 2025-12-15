@@ -1,7 +1,12 @@
 import { StyleSheet, Text, View } from "react-native";
 import { CountdownCircleTimer } from "react-native-countdown-circle-timer";
 
-const CircularTimer = ({ duration, onComplete, isPlaying = true }) => {
+const CircularTimer = ({
+  duration,
+  onComplete,
+  isPlaying = true,
+  initialRemainingTime,
+}) => {
   const formatTime = (remainingTime) => {
     const minutes = Math.floor(remainingTime / 60);
     const seconds = remainingTime % 60;
@@ -12,6 +17,7 @@ const CircularTimer = ({ duration, onComplete, isPlaying = true }) => {
   return (
     <View style={styles.container}>
       <CountdownCircleTimer
+        initialRemainingTime={initialRemainingTime}
         isPlaying={isPlaying}
         duration={duration}
         colors={["#4AEF8C", "#F7B801", "#A30000"]}

@@ -1,15 +1,20 @@
 import { useEffect, useRef } from "react";
 import { ActivityIndicator, Animated, Easing, View } from "react-native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { checkActiveTask } from "../redux/slices/taskSlices";
 
 // --- 1. NAVIGATION IMPORTS ---
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  useNavigationContainerRef,
+} from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 // --- 2. SCREEN IMPORTS ---
 import CreateFlowScreen from "../screens/CreateFlowScreen";
 import FeedScreen from "../screens/FeedScreen";
+import FocusScreen from "../screens/FocusScreen";
 import LeaderboardScreen from "../screens/LeaderboardScreen";
 import LoginScreen from "../screens/LoginScreen";
 import MyTasksScreen from "../screens/MyTasksScreen";
@@ -196,7 +201,33 @@ function MainAppTabs() {
 
 // --- 5. NAVIGATEUR PRINCIPAL (EXPORT) ---
 export default function AppNavigator() {
+  const dispatch = useDispatch();
   const { isAuthenticated, isLoading } = useSelector((state) => state.auth);
+  const { currentTask } = useSelector((state) => state.tasks);
+
+  // Vérification de la persistance (Tâche active ?)
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(checkActiveTask());
+    }
+  }, [isAuthenticated, dispatch]);
+
+  // 2. Rediriger si on détecte une tâche en cours (persistence)
+  // Note: On utilise useNavigationContainerRef pour avoir accès à isReady() et navigate()
+  const navigationRef = useNavigationContainerRef();
+  // Mais ici on retourne le container...
+  // Petite astuce : on peut utiliser le onReady du NavigationContainer ou un useEffect qui surveille currentTask
+  // 2. Rediriger si on détecte une tâche en cours (persistence)
+  useEffect(() => {
+    if (
+      currentTask &&
+      currentTask.status === "in_progress" &&
+      navigationRef.isReady()
+    ) {
+      // On redirige vers Focus SANS possibilité de retour (reset de la stack ou replace, mais ici traverse stack)
+      navigationRef.navigate("Focus");
+    }
+  }, [currentTask]);
 
   if (isLoading) {
     return (
@@ -214,7 +245,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
           // --- UTILISATEUR CONNECTÉ ---
@@ -226,6 +257,7 @@ export default function AppNavigator() {
               <Stack.Screen name="CreateFlow" component={CreateFlowScreen} />
               <Stack.Screen name="RoastModal" component={RoastResultScreen} />
             </Stack.Group>
+            <Stack.Screen name="Focus" component={FocusScreen} />
           </>
         ) : (
           // --- UTILISATEUR NON CONNECTÉ ---
