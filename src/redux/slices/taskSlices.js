@@ -64,9 +64,12 @@ export const checkActiveTask = createAsyncThunk(
 // 3. Mettre à jour le statut (ex: pending -> in_progress -> done)
 export const updateTaskStatus = createAsyncThunk(
   "tasks/updateStatus",
-  async ({ id, status }, { rejectWithValue }) => {
+  async ({ id, status, ...rest }, { rejectWithValue }) => {
     try {
-      const response = await api.patch(`/tasks/${id}/status`, { status });
+      const response = await api.patch(`/tasks/${id}/status`, {
+        status,
+        ...rest,
+      });
       return response.data.data;
     } catch (error) {
       return rejectWithValue(

@@ -21,6 +21,7 @@ export default function FocusScreen({ navigation }) {
   const dispatch = useDispatch();
   const { currentTask } = useSelector((state) => state.tasks);
   const [checkedSteps, setCheckedSteps] = useState({});
+  const [isTimerFinished, setIsTimerFinished] = useState(false);
 
   // 1. Bloquer le retour arrière
   useEffect(() => {
@@ -59,7 +60,20 @@ export default function FocusScreen({ navigation }) {
     initialRemainingTime = Math.max(0, duration - elapsedSeconds);
   }
 
+  // --- LOGIC: Step Locking ---
+  const isStepLocked = (index) => {
+    return index === 2 && !isTimerFinished;
+  };
+
   const toggleStep = (index) => {
+    if (isStepLocked(index)) {
+      Alert.alert(
+        "Pas si vite !",
+        "Attends la fin du chrono pour débloquer cette étape."
+      );
+      return;
+    }
+
     setCheckedSteps((prev) => ({
       ...prev,
       [index]: !prev[index],
@@ -67,12 +81,21 @@ export default function FocusScreen({ navigation }) {
   };
 
   const handleTimerComplete = () => {
-    // Dispatch action to mark task as 'completed'
+    // Le timer est fini, on débloque le dernier checkbox et on permet la validation
+    setIsTimerFinished(true);
+    // On ne valide plus automatiquement. L'user doit cocher et cliquer.
+    Alert.alert(
+      "Chrono terminé !",
+      "Tu peux maintenant cocher la dernière étape et valider."
+    );
+  };
+
+  const handleValidateTask = () => {
     dispatch(updateTaskStatus({ id: currentTask._id, status: "completed" }))
       .unwrap()
       .then((data) => {
         Alert.alert(
-          "🔥 Session terminée !",
+          "🔥 JACKPOT !",
           `Tu as gagné ${data.pointsEarned || 0} points !`,
           [
             {
@@ -98,8 +121,18 @@ export default function FocusScreen({ navigation }) {
         text: "Oui, je suis faible",
         style: "destructive",
         onPress: () => {
+          // On récupère les index cochés pour les points partiels
+          const stepIndices = Object.keys(checkedSteps)
+            .filter((key) => checkedSteps[key])
+            .map(Number);
+
           dispatch(
-            updateTaskStatus({ id: currentTask._id, status: "abandoned" })
+            updateTaskStatus({
+              id: currentTask._id,
+              status: "abandoned",
+              checkedStepIndices: stepIndices,
+              timerFinished: isTimerFinished, // Ajout du status timer pour les points
+            })
           )
             .unwrap()
             .then(() => {
@@ -116,6 +149,15 @@ export default function FocusScreen({ navigation }) {
       },
     ]);
   };
+
+  // Check if all 3 steps are checked
+  const allStepsChecked =
+    currentTask?.actionPlan?.length === 3 &&
+    checkedSteps[0] &&
+    checkedSteps[1] &&
+    checkedSteps[2];
+
+  const canValidate = isTimerFinished && allStepsChecked;
 
   // Fallback si pas de tâche (accès direct)
   if (!currentTask) {
@@ -170,30 +212,40 @@ export default function FocusScreen({ navigation }) {
           {/* ACTION PLAN */}
           <View style={styles.actionPlanContainer}>
             <Text style={styles.sectionTitle}>TA TODO LIST :</Text>
-            {currentTask.actionPlan?.map((step, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.stepItem,
-                  checkedSteps[index] && styles.stepItemChecked,
-                ]}
-                onPress={() => toggleStep(index)}
-              >
-                <Ionicons
-                  name={checkedSteps[index] ? "checkbox" : "square-outline"}
-                  size={24}
-                  color={checkedSteps[index] ? "#4AEF8C" : "#94a3b8"}
-                />
-                <Text
+            {currentTask.actionPlan?.map((step, index) => {
+              const locked = isStepLocked(index);
+              const checked = checkedSteps[index];
+
+              return (
+                <TouchableOpacity
+                  key={index}
                   style={[
-                    styles.stepText,
-                    checkedSteps[index] && styles.stepTextChecked,
+                    styles.stepItem,
+                    checked && styles.stepItemChecked,
+                    locked && { opacity: 0.5 },
                   ]}
+                  onPress={() => toggleStep(index)}
+                  disabled={locked && false}
                 >
-                  {step}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Ionicons
+                    name={
+                      locked
+                        ? "lock-closed"
+                        : checked
+                        ? "checkbox"
+                        : "square-outline"
+                    }
+                    size={24}
+                    color={locked ? "#FF5252" : checked ? "#4AEF8C" : "#94a3b8"}
+                  />
+                  <Text
+                    style={[styles.stepText, checked && styles.stepTextChecked]}
+                  >
+                    {step}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ScrollView>
 
@@ -201,9 +253,23 @@ export default function FocusScreen({ navigation }) {
         <View style={styles.footer}>
           {/* PLUS DE BOUTON PAUSE */}
 
-          <TouchableOpacity onPress={handleGiveUp} style={styles.giveUpButton}>
-            <Text style={styles.giveUpText}>J'abandonne (Honteux)</Text>
-          </TouchableOpacity>
+          {canValidate ? (
+            <TouchableOpacity
+              onPress={handleValidateTask}
+              style={styles.validateButton}
+            >
+              <Text style={styles.validateButtonText}>
+                VALIDER LA MISSION (JACKPOT)
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={handleGiveUp}
+              style={styles.giveUpButton}
+            >
+              <Text style={styles.giveUpText}>J'abandonne (Honteux)</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </SafeAreaView>
     </View>
@@ -325,5 +391,22 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     fontSize: 14,
     opacity: 0.8,
+  },
+  validateButton: {
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    backgroundColor: "#4AEF8C",
+    shadowColor: "#4AEF8C",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  validateButtonText: {
+    color: "#040C1E",
+    fontWeight: "900",
+    fontSize: 16,
+    textTransform: "uppercase",
   },
 });
