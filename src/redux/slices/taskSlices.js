@@ -115,6 +115,10 @@ const taskSlice = createSlice({
     resetCurrentTask: (state) => {
       state.currentTask = null;
     },
+    // Ajout pour permettre de définir la tâche courante depuis la liste
+    setCurrentTask: (state, action) => {
+      state.currentTask = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -197,5 +201,6 @@ const taskSlice = createSlice({
   },
 });
 
-export const { clearError, resetCurrentTask } = taskSlice.actions;
+export const { clearError, resetCurrentTask, setCurrentTask } =
+  taskSlice.actions;
 export default taskSlice.reducer;
