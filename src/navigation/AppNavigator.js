@@ -12,6 +12,7 @@ import {
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 // --- 2. SCREEN IMPORTS ---
+import CompletionScreen from "../screens/CompletionScreen";
 import CreateFlowScreen from "../screens/CreateFlowScreen";
 import FeedScreen from "../screens/FeedScreen";
 import FocusScreen from "../screens/FocusScreen";
@@ -186,6 +187,7 @@ function MainAppTabs() {
           ),
         }}
       />
+      
       <Tab.Screen
         name="Profil"
         component={ProfileScreen}
@@ -215,9 +217,6 @@ export default function AppNavigator() {
   // 2. Rediriger si on détecte une tâche en cours (persistence)
   // Note: On utilise useNavigationContainerRef pour avoir accès à isReady() et navigate()
   const navigationRef = useNavigationContainerRef();
-  // Mais ici on retourne le container...
-  // Petite astuce : on peut utiliser le onReady du NavigationContainer ou un useEffect qui surveille currentTask
-  // 2. Rediriger si on détecte une tâche en cours (persistence)
   useEffect(() => {
     if (
       currentTask &&
@@ -258,6 +257,7 @@ export default function AppNavigator() {
               <Stack.Screen name="RoastModal" component={RoastResultScreen} />
             </Stack.Group>
             <Stack.Screen name="Focus" component={FocusScreen} />
+            <Stack.Screen name="CompletionScreen" component={CompletionScreen} />
           </>
         ) : (
           // --- UTILISATEUR NON CONNECTÉ ---

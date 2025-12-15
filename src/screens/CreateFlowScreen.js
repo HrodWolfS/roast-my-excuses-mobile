@@ -12,13 +12,15 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View, 
 } from "react-native";
 
 // Redux imports
 import { useDispatch, useSelector } from "react-redux";
 import { RoastProgressBar } from "../components/RoastProgressBar";
 import { createTask } from "../redux/slices/taskSlices";
+
+import QuotaModal from "../components/QuotaModal";
 
 // Design System Colors
 const COLORS = {
@@ -37,6 +39,7 @@ export default function CreateFlowScreen({ navigation }) {
   const [excuse, setExcuse] = useState("");
   const [mode, setMode] = useState("challenge");
   const [errors, setErrors] = useState({ task: null, excuse: null });
+  const [isQuotaModalVisible, setQuotaModalVisible] = useState(false);
 
   const dispatch = useDispatch();
   const { loading, error: apiError } = useSelector((state) => state.tasks);
@@ -83,6 +86,9 @@ export default function CreateFlowScreen({ navigation }) {
       setExcuse("");
     } catch (err) {
       console.error("Erreur création task:", err);
+      if (err.status === 403) {
+        setQuotaModalVisible(true);
+      }
     }
   };
 
@@ -246,6 +252,14 @@ export default function CreateFlowScreen({ navigation }) {
           </KeyboardAvoidingView>
         </KeyboardDismissWrapper>
       </View>
+      <QuotaModal
+          visible={isQuotaModalVisible}
+          onClose={() => setQuotaModalVisible(false)}
+          onNavigateToFeed={() => {
+            setQuotaModalVisible(false);
+            navigation.navigate("Main", { screen: "Feed" });
+          }}
+        />
     </ImageBackground>
   );
 }

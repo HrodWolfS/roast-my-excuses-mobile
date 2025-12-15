@@ -1,35 +1,272 @@
-import { ImageBackground, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import {
+  FlatList,
+  ImageBackground,
+  Modal,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  EmptyState,
+  FilterTab,
+  StatusBadge,
+} from "../components/TaskComponents";
+import { getMyTasks, setCurrentTask } from "../redux/slices/taskSlices";
 
-export default function MyTasksScreen() {
+export default function TasksScreen({ navigation }) {
+  const dispatch = useDispatch();
+  const { tasks, loading } = useSelector((state) => state.tasks);
+  const [activeFilter, setActiveFilter] = useState("pending"); // 'pending', 'abandoned', 'completed'
+
+  // Modal State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  // Chargement initial
+  useEffect(() => {
+    dispatch(getMyTasks());
+  }, []);
+
+  // Filtrage optimisé
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      if (activeFilter === "pending") return task.status === "pending";
+      if (activeFilter === "abandoned") return task.status === "abandoned";
+      if (activeFilter === "completed") return task.status === "completed";
+      return true;
+    });
+  }, [tasks, activeFilter]);
+
+  // Interaction Logic
+  const handleTaskPress = (item) => {
+    if (item.status === "pending") {
+      // Si pending -> On set la tâche active et on lance le flow
+      dispatch(setCurrentTask(item));
+      navigation.navigate("RoastModal", { taskId: item._id });
+    } else {
+      // Si fini ou abandonné -> On affiche le roast (ou l'historique)
+      setSelectedTask(item);
+      setModalVisible(true);
+    }
+  };
+
+  const renderTaskItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => handleTaskPress(item)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.cardHeader}>
+        <Text style={styles.taskTitle} numberOfLines={1}>
+          {item.description}
+        </Text>
+        <StatusBadge status={item.status} />
+      </View>
+      <Text style={styles.taskExcuse} numberOfLines={2}>
+        💭 "{item.excuse}"
+      </Text>
+      {item.pointsEarned > 0 && (
+        <Text style={styles.points}>+{item.pointsEarned} pts</Text>
+      )}
+    </TouchableOpacity>
+  );
+
   return (
     <ImageBackground
       source={require("../assets/background.jpg")}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      <View style={styles.container}>
-        <Text style={styles.text}>MyTasksScreen</Text>
+      <View style={styles.overlay}>
+        <View style={styles.container}>
+          <Text style={styles.headerTitle}>Mes Tâches</Text>
+
+          {/* --- FILTER TABS --- */}
+          <View style={styles.tabsContainer}>
+            <FilterTab
+              title="À faire"
+              value="pending"
+              active={activeFilter}
+              onPress={setActiveFilter}
+            />
+            <FilterTab
+              title="Abandons"
+              value="abandoned"
+              active={activeFilter}
+              onPress={setActiveFilter}
+            />
+            <FilterTab
+              title="Terminé"
+              value="completed"
+              active={activeFilter}
+              onPress={setActiveFilter}
+            />
+          </View>
+
+          {/* --- LIST --- */}
+          <FlatList
+            data={filteredTasks}
+            renderItem={renderTaskItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={loading}
+                onRefresh={() => dispatch(getMyTasks())}
+                tintColor="#FFFFFF"
+              />
+            }
+            ListEmptyComponent={
+              <EmptyState filter={activeFilter} navigation={navigation} />
+            }
+          />
+        </View>
+
+        {/* --- ROAST MODAL --- */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {selectedTask?.status === "completed"
+                  ? "🔥 Roast de Victoire"
+                  : "🏳️ Roast d'Abandon"}
+              </Text>
+              <Text style={styles.modalText}>
+                "{selectedTask?.roastContent}"
+              </Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Fermer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   backgroundImage: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     width: "100%",
     height: "100%",
   },
-  text: {
-    color: "white",
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(4, 12, 30, 0.85)",
+  },
+  container: {
+    flex: 1,
+    paddingTop: 60,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    marginLeft: 20,
+    marginBottom: 20,
+    color: "#FFFFFF",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  card: {
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  taskTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    flex: 1,
+    marginRight: 10,
+  },
+  taskExcuse: {
+    fontSize: 14,
+    color: "#94a3b8",
+    fontStyle: "italic",
+  },
+  points: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+    color: "#4AEF8C",
+    fontWeight: "bold",
+    fontSize: 12,
+    backgroundColor: "rgba(74, 239, 140, 0.1)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "#0D121F",
+    padding: 24,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#4AEF8C",
+    alignItems: "center",
+  },
+  modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
+    color: "#4AEF8C",
+    marginBottom: 16,
+    textTransform: "uppercase",
+  },
+  modalText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 24,
+    fontStyle: "italic",
+  },
+  modalButton: {
+    backgroundColor: "#4AEF8C",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: "#040C1E",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

@@ -17,9 +17,10 @@ export const createTask = createAsyncThunk(
       return response.data.data;
     } catch (error) {
       console.error("REDUX THUNK: API Error:", error);
-      return rejectWithValue(
-        error.response?.data?.message || "Erreur lors du roast"
-      );
+      return rejectWithValue({
+        message: error.response?.data?.message || "Erreur lors du roast",
+        status: error.response?.status 
+      });
     }
   }
 );
@@ -79,6 +80,21 @@ export const updateTaskStatus = createAsyncThunk(
   }
 );
 
+// 4. Récupérer mes tâches (Historique)
+export const getMyTasks = createAsyncThunk(
+  "tasks/getMyTasks",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/tasks");
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Erreur récupération de mes tâches"
+      );
+    }
+  }
+);
+
 // --- SLICE ---
 
 const taskSlice = createSlice({
@@ -86,6 +102,7 @@ const taskSlice = createSlice({
   initialState: {
     currentTask: null,
     feedTasks: [],
+    tasks: [],
     loading: false,
     error: null,
   },
@@ -97,6 +114,10 @@ const taskSlice = createSlice({
     // Utile quand on quitte l'écran de résultat pour revenir à zéro
     resetCurrentTask: (state) => {
       state.currentTask = null;
+    },
+    // Ajout pour permettre de définir la tâche courante depuis la liste
+    setCurrentTask: (state, action) => {
+      state.currentTask = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -117,7 +138,7 @@ const taskSlice = createSlice({
       .addCase(createTask.rejected, (state, action) => {
         console.log("REDUX REDUCER: createTask.rejected", action.payload);
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || "Une erreur est survenue";
       })
 
       // --- Gestion de getFeedTasks (Préparation) ---
@@ -162,9 +183,24 @@ const taskSlice = createSlice({
       .addCase(updateTaskStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      // --- Gestion de getMyTasks ---
+      .addCase(getMyTasks.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getMyTasks.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tasks = action.payload; // On remplit la liste
+      })
+      .addCase(getMyTasks.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
-export const { clearError, resetCurrentTask } = taskSlice.actions;
+export const { clearError, resetCurrentTask, setCurrentTask } =
+  taskSlice.actions;
 export default taskSlice.reducer;

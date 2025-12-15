@@ -1,7 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
 import {
-  BackHandler,
   ImageBackground,
   ScrollView,
   StatusBar,
@@ -23,7 +22,8 @@ export default function RoastResultScreen({ navigation }) {
     if (!currentTask) {
       navigation.replace("Main");
     }
-  });
+  }, [currentTask]);
+
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -50,7 +50,9 @@ export default function RoastResultScreen({ navigation }) {
           status: "in_progress",
         })
       ).unwrap();
-      navigation.navigate("Focus");
+      // On ne navigue plus manuellement ici !
+      // C'est l'AppNavigator qui va détecter le changement de status et rediriger vers Focus.
+      // navigation.navigate("Focus");
     } catch (error) {
       console.error("Erreur start focus:", error);
     }
