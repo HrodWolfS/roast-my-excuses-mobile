@@ -84,30 +84,17 @@ export default function FocusScreen({ navigation }) {
     // Le timer est fini, on débloque le dernier checkbox et on permet la validation
     setIsTimerFinished(true);
     // On ne valide plus automatiquement. L'user doit cocher et cliquer.
-    Alert.alert(
-      "Chrono terminé !",
-      "Tu peux maintenant cocher la dernière étape et valider."
-    );
   };
 
   const handleValidateTask = () => {
     dispatch(updateTaskStatus({ id: currentTask._id, status: "completed" }))
       .unwrap()
       .then((data) => {
-        Alert.alert(
-          "🔥 JACKPOT !",
-          `Tu as gagné ${data.pointsEarned || 0} points !`,
-          [
-            {
-              text: "Voir le résultat",
-              onPress: () =>
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: "Main" }],
-                }),
-            },
-          ]
-        );
+        navigation.navigate("CompletionScreen", {
+          isSuccess: true,
+          pointsEarned: data.pointsEarned || 0,
+          isLevelUp: data.isLevelUp || false,
+        });
       })
       .catch((err) => {
         Alert.alert("Erreur", "Impossible de valider la tâche.");
@@ -131,14 +118,15 @@ export default function FocusScreen({ navigation }) {
               id: currentTask._id,
               status: "abandoned",
               checkedStepIndices: stepIndices,
-              timerFinished: isTimerFinished, // Ajout du status timer pour les points
+              timerFinished: isTimerFinished,
             })
           )
             .unwrap()
-            .then(() => {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "Main" }],
+            .then((payload) => {
+              navigation.navigate("CompletionScreen", {
+                isSuccess: false,
+                pointsEarned: payload.pointsEarned || 0,
+                isLevelUp: false, // Pas de level up en cas d'abandon
               });
             })
             .catch((err) => {
