@@ -79,6 +79,21 @@ export const updateTaskStatus = createAsyncThunk(
   }
 );
 
+// 4. Récupérer mes tâches (Historique)
+export const getMyTasks = createAsyncThunk(
+  "tasks/getMyTasks",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/tasks"); // GET /api/tasks/
+      return response.data.data; // Array of tasks
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Erreur récupération de mes tâches"
+      );
+    }
+  }
+);
+
 // --- SLICE ---
 
 const taskSlice = createSlice({
@@ -86,6 +101,7 @@ const taskSlice = createSlice({
   initialState: {
     currentTask: null,
     feedTasks: [],
+    tasks: [], // Mes tâches (historique)
     loading: false,
     error: null,
   },
@@ -160,6 +176,20 @@ const taskSlice = createSlice({
         }
       })
       .addCase(updateTaskStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // --- Gestion de getMyTasks ---
+      .addCase(getMyTasks.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getMyTasks.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tasks = action.payload; // On remplit la liste
+      })
+      .addCase(getMyTasks.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
