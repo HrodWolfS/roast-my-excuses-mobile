@@ -1,31 +1,31 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLayoutEffect, useState } from "react";
-
 import {
-  View,
+  ImageBackground,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
-  Keyboard,
-  ImageBackground,
-  StatusBar,
+  View,
 } from "react-native";
 
 // Redux imports
 import { useDispatch, useSelector } from "react-redux";
+import { RoastProgressBar } from "../components/RoastProgressBar";
 import { createTask } from "../redux/slices/taskSlices";
 
 // Design System Colors
 const COLORS = {
   background: "#040C1E",
   card: "#0D121F",
-  primary: "#4AEF8C", // Neon Green
-  secondary: "#40FAEF", // Neon Cyan
+  primary: "#4AEF8C",
+  secondary: "#40FAEF",
   text: "#FFFFFF",
   textSecondary: "#A6A6A6",
   danger: "#FF5252",
@@ -35,10 +35,9 @@ export default function CreateFlowScreen({ navigation }) {
   // 1. État Local
   const [task, setTask] = useState("");
   const [excuse, setExcuse] = useState("");
-  const [mode, setMode] = useState("challenge"); // 'challenge' | 'roasty'
+  const [mode, setMode] = useState("challenge");
   const [errors, setErrors] = useState({ task: null, excuse: null });
 
-  // Redux hooks et on récupère 'loading' pour gérer l'UI et 'error' pour afficher les soucis API
   const dispatch = useDispatch();
   const { loading, error: apiError } = useSelector((state) => state.tasks);
 
@@ -70,40 +69,31 @@ export default function CreateFlowScreen({ navigation }) {
 
   // 4. Handler de Soumission modififé pour Redux
   const handleSubmit = async () => {
-    // Préparation des données pour le Backend
-    // Le backend attend { description, excuse, type }
-    // On lance la validation. Si c'est faux (false), on arrête tout (return).
     if (!validate()) return;
-    // -----------------------
     const taskData = {
-      description: task, // Ton state local s'appelle 'task', le back veut 'description'
+      description: task,
       excuse: excuse,
       type: mode,
     };
 
     try {
-      // On lance l'action et on attend le résultat
-      // .unwrap() permet de gérer la promesse (success/error) facilement
       await dispatch(createTask(taskData)).unwrap();
-
-      // 4. Navigation (seulement si pas d'erreur)
-      if (mode === "roasty") {
-        // On passe les infos, mais le RoastResult ira lire le store Redux de toute façon
-        navigation.navigate("RoastModal");
-      } else {
-        // Mode Challenge : retour au feed (le feed devra se rafraîchir)
-        navigation.goBack();
-      }
-
-      // Optionnel : Reset du formulaire ici si besoin
+      navigation.navigate("RoastModal");
       setTask("");
       setExcuse("");
     } catch (err) {
-      // Si l'API renvoie une erreur (gérée par le rejectWithValue dans le slice)
       console.error("Erreur création task:", err);
-      // Tu peux afficher une alerte ou laisser l'affichage de l'erreur via l'UI
     }
   };
+
+  if (loading) {
+    return (
+      <RoastProgressBar
+        isActive={true}
+        label="Analyse de ton incompétence à venir..."
+      />
+    );
+  }
 
   return (
     <ImageBackground
@@ -127,7 +117,7 @@ export default function CreateFlowScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardDismissWrapper>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.container}
@@ -254,11 +244,24 @@ export default function CreateFlowScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
-        </TouchableWithoutFeedback>
+        </KeyboardDismissWrapper>
       </View>
     </ImageBackground>
   );
 }
+
+// Wrapper pour gérer le dismiss keyboard uniquement sur mobile
+// Sur Web, TouchableWithoutFeedback peut bloquer le focus des inputs
+const KeyboardDismissWrapper = ({ children }) => {
+  if (Platform.OS === "web") {
+    return <View style={{ flex: 1 }}>{children}</View>;
+  }
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      {children}
+    </TouchableWithoutFeedback>
+  );
+};
 
 const styles = StyleSheet.create({
   backgroundImage: {

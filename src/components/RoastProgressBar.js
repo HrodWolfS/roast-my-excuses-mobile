@@ -31,6 +31,13 @@ const NEAR_END_MESSAGES = [
   "On voit la lumière au bout du tunnel.",
 ];
 
+const END_MESSAGES = [
+  "Attends t'as vraiment cru que je réfléchissait ?",
+  "Oh mais attends un peu j'ai pas finis !!",
+  "Attends encore je réfléchis un peu...",
+  "On est bien entre nous là hein ?",
+];
+
 export const RoastProgressBar = ({
   isActive = true,
   onFinished,
@@ -95,7 +102,11 @@ export const RoastProgressBar = ({
         }
 
         if (next >= 100) {
-          setMessage("C'est bon, j'ai fini de te juger. Pour l'instant.");
+          const msg =
+              END_MESSAGES[
+                Math.floor(Math.random() * END_MESSAGES.length)
+              ]
+          setMessage(msg);
 
           if (onFinished) {
             onFinished();

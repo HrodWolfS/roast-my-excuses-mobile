@@ -1,10 +1,16 @@
-import { StyleSheet, Text, View } from "react-native";
+import { ImageBackground, StyleSheet, Text, View } from "react-native";
 
 export default function MyTasksScreen() {
   return (
-    <View style={styles.container}>
-      <Text>Screen: MyTasksScreen</Text>
-    </View>
+    <ImageBackground
+      source={require("../assets/background.jpg")}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <View style={styles.container}>
+        <Text style={styles.text}>MyTasksScreen</Text>
+      </View>
+    </ImageBackground>
   );
 }
 
@@ -13,6 +19,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
+  },
+  backgroundImage: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
+  },
+  text: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
