@@ -84,8 +84,8 @@ export const getMyTasks = createAsyncThunk(
   "tasks/getMyTasks",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/tasks"); // GET /api/tasks/
-      return response.data.data; // Array of tasks
+      const response = await api.get("/tasks");
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Erreur récupération de mes tâches"
@@ -101,7 +101,7 @@ const taskSlice = createSlice({
   initialState: {
     currentTask: null,
     feedTasks: [],
-    tasks: [], // Mes tâches (historique)
+    tasks: [],
     loading: false,
     error: null,
   },
