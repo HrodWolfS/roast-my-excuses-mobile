@@ -224,7 +224,7 @@ export default function LeaderboardScreen() {
           renderItem={({ item }) => (
             <LeaderboardRow
               item={item}
-              isMe={item.username === currentUsername} // Comparaison par username
+              isMe={item.username === currentUsername} 
             />
           )}
           getItemLayout={getItemLayout}
@@ -249,7 +249,7 @@ export default function LeaderboardScreen() {
             activeTab === "global" ? (
               <View style={styles.leagueHeader}>
                 <Image
-                  source={require("../assets/ligProCrastinateur.png")}
+                  source={require("../assets/leagues/ProCrastinateur.png")}
                   style={styles.leagueHeaderImage}
                 />
               </View>
@@ -285,7 +285,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#BEF264",
   },
-  list: { flex: 1 },
+  list: { 
+    flex: 1 
+  },
   listContent: {
     paddingBottom: 24,
   },
@@ -293,20 +295,29 @@ const styles = StyleSheet.create({
     height: 100,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 10,
+    marginBottom: 10,
   },
   leagueHeaderImage: {
-    marginTop: 11,
     width: "100%",
-    height: 770,
-    borderRadius: 12,
+    height: 100,
+    marginTop: 20,
+    marginBottom: 20,
+    alignSelf: 'center',
   },
   empty: {
     marginTop: 18,
     padding: 16,
     borderRadius: 12,
   },
-  emptyTitle: { color: "white", fontWeight: "800", marginBottom: 6 },
-  emptyText: { color: "rgba(255,255,255,0.85)" },
+  emptyTitle: { 
+    color: "white", 
+    fontWeight: "800", 
+    marginBottom: 6 
+  },
+  emptyText: { 
+    color: "rgba(255,255,255,0.85)" 
+  },
   loadingOverlay: {
     flex: 1,
     alignItems: "center",

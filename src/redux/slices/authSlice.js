@@ -43,19 +43,27 @@ export const registerUser = createAsyncThunk(
 
       const data = await response.json();
 
+      console.log("REGISTER RESPONSE:", JSON.stringify(data, null, 2));
+
       if (!response.ok) {
         throw new Error(data.message || "Erreur lors de l'inscription");
       }
 
       // Sauvegarde des données pour la persistance (connexion automatique)
-      await AsyncStorage.setItem("token", data.token);
-      await AsyncStorage.setItem("user", JSON.stringify(data.user)); // Store full user object
+      const userToSave = data.user || data.data; 
+      const tokenToSave = data.token;
 
-      return data;
+      if (!userToSave) {
+        throw new Error("L'inscription a réussi mais aucune info utilisateur reçue.");
+      }
+
+      await AsyncStorage.setItem("token", tokenToSave);
+      await AsyncStorage.setItem("user", JSON.stringify(userToSave));
+
+      return { token: tokenToSave, user: userToSave };
+
     } catch (error) {
-      return rejectWithValue(
-        error.message || "Impossible de contacter le serveur."
-      );
+      return rejectWithValue(error.message || "Impossible de contacter le serveur.");
     }
   }
 );
@@ -74,15 +82,25 @@ export const loginUser = createAsyncThunk(
 
       const data = await response.json();
 
+      console.log("LOGIN RESPONSE:", JSON.stringify(data, null, 2));
+
       if (!response.ok) {
         throw new Error(data.message || "Email ou mot de passe incorrect.");
+      }
+
+      const userToSave = data.user || data.data;
+      const tokenToSave = data.token;
+
+      if (!userToSave) {
+        console.error("ERREUR CRITIQUE : Le backend n'a pas renvoyé l'objet user !");
+        throw new Error("Erreur technique : Profil introuvable dans la réponse.");
       }
 
       // Sauvegarde des données pour la persistance
       await AsyncStorage.setItem("token", data.token);
       await AsyncStorage.setItem("user", JSON.stringify(data.user)); // Store full user object
 
-      return data;
+      return { token: tokenToSave, user: userToSave };
     } catch (error) {
       return rejectWithValue(
         error.message || "Impossible de contacter le serveur."
