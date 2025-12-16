@@ -124,6 +124,7 @@ export default function ProfileScreen() {
     >
       
       <View style={styles.mainContainer}>
+        
         {/* HEADER */}
         <View style={styles.header}>
           <Image
@@ -163,6 +164,7 @@ export default function ProfileScreen() {
               style={styles.neonBorderContainer}
             >
               <View style={styles.statsContainer}>
+
                 {/* LIGNE 1 : Points & Niveau */}
                 <View style={styles.statsRow}>
                   <View style={styles.statItem}>
@@ -184,7 +186,6 @@ export default function ProfileScreen() {
                   <View style={styles.statItem}>
                     <Text style={styles.statValue}>
                       {userProfile.streak || 0}{" "}
-                      <Text style={{ fontSize: 18 }}>🔥</Text>
                     </Text>
                     <Text style={styles.statLabel}>Série jour</Text>
                   </View>
@@ -192,7 +193,6 @@ export default function ProfileScreen() {
                   <View style={styles.statItem}>
                     <Text style={styles.statValue}>
                       {userProfile.tasksCompleted || 0}{" "}
-                      <Text style={{ fontSize: 18 }}>✅</Text>
                     </Text>
                     <Text style={styles.statLabel}>Tâches finies</Text>
                   </View>
