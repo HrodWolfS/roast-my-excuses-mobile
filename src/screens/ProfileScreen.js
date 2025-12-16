@@ -104,7 +104,7 @@ export default function ProfileScreen() {
         {/* HEADER */}
         <View style={styles.header}>
           <Image 
-            source={require("../assets/logo.png")} 
+            source={require("../assets/sticker_21.webp")}  
             style={styles.logo} 
             resizeMode="contain" 
           />
