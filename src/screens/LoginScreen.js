@@ -36,17 +36,22 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
+    /* Useless gérer dans le back et empeche de se log par UserName.
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setLocalError("On a pas les yeux en face des trous?");
       return;
     }
+    */
 
     dispatch(loginUser({ email, password })).then((resultAction) => {
       if (loginUser.fulfilled.match(resultAction)) {
         setEmail("");
         setPassword("");
-        navigation.navigate("Main");
+        /*navigation.navigate("Main");
+        Quand l'utilisateur se connecte il obtient un token 
+         qui l'envoie direct sur le Main, 
+         pas besoin de nav en plus :)*/
       }
     });
   };
@@ -89,7 +94,7 @@ export default function LoginScreen({ navigation }) {
             )}
 
             <View style={styles.form}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>Email ou Username</Text>
               <TextInput
                 style={styles.input}
                 placeholder="boss@flemme.com"
