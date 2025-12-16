@@ -93,13 +93,28 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleSearchFriend = () => {
+  const handleSearchFriend = async () => {
+    // vérif 
     if (searchCode.length < 6) {
-      Alert.alert("Erreur", "Le code doit faire 6 caractères.");
+      Alert.alert("Trop court", "Le code ami doit faire 6 caractères.");
       return;
     }
-    Alert.alert("Recherche", `On cherche le joueur : ${searchCode}`);
-    setSearchCode("");
+
+    try {
+      // call backend pour add l'ami direct
+      const response = await api.post("/users/friends", { 
+        friendCode: searchCode 
+      });
+
+      // Succès 
+      Alert.alert("Nouveau Pote ! 🤝", response.data.message);
+      setSearchCode(""); 
+
+    } catch (error) {
+      // Gestion des erreurs (Code faux, déjà amis, auto-ajout...)
+      const message = error.response?.data?.message || "Impossible d'ajouter cet ami.";
+      Alert.alert("Oups", message);
+    }
   };
 
   if (isLoading) {
