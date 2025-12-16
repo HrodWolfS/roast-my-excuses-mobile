@@ -187,7 +187,7 @@ function MainAppTabs() {
           ),
         }}
       />
-      
+
       <Tab.Screen
         name="Profil"
         component={ProfileScreen}
@@ -256,8 +256,19 @@ export default function AppNavigator() {
               <Stack.Screen name="CreateFlow" component={CreateFlowScreen} />
               <Stack.Screen name="RoastModal" component={RoastResultScreen} />
             </Stack.Group>
-            <Stack.Screen name="Focus" component={FocusScreen} />
-            <Stack.Screen name="CompletionScreen" component={CompletionScreen} />
+            <Stack.Screen
+              name="Focus"
+              component={FocusScreen}
+              options={{ gestureEnabled: false }}
+            />
+            <Stack.Screen
+              name="CompletionScreen"
+              component={CompletionScreen}
+              options={{
+                gestureEnabled: false,
+                presentation: "fullScreenModal", // Empêche le swipe down "page sheet" sur iOS
+              }}
+            />
           </>
         ) : (
           // --- UTILISATEUR NON CONNECTÉ ---
