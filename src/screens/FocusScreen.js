@@ -22,6 +22,7 @@ export default function FocusScreen({ navigation }) {
   const { currentTask } = useSelector((state) => state.tasks);
   const [checkedSteps, setCheckedSteps] = useState({});
   const [isTimerFinished, setIsTimerFinished] = useState(false);
+  const [isTimerActive, setIsTimerActive] = useState(true);
 
   // 1. Bloquer le retour arrière
   useEffect(() => {
@@ -87,6 +88,7 @@ export default function FocusScreen({ navigation }) {
   };
 
   const handleValidateTask = () => {
+    setIsTimerActive(false);
     dispatch(updateTaskStatus({ id: currentTask._id, status: "completed" }))
       .unwrap()
       .then((data) => {
@@ -97,45 +99,98 @@ export default function FocusScreen({ navigation }) {
         });
       })
       .catch((err) => {
-        Alert.alert("Erreur", "Impossible de valider la tâche.");
+        const errorMessage = err?.message || JSON.stringify(err);
+        if (
+          errorMessage.includes("déjà finie") ||
+          errorMessage.includes("abandonnée") ||
+          errorMessage.includes("400")
+        ) {
+          Alert.alert(
+            "Déjà validé !",
+            "Cette tâche est déjà cloturée. Retour à l'accueil.",
+            [
+              {
+                text: "OK",
+                onPress: () =>
+                  navigation.reset({ index: 0, routes: [{ name: "Main" }] }),
+              },
+            ]
+          );
+        } else {
+          Alert.alert("Erreur", "Impossible de valider la tâche.");
+        }
       });
   };
 
   const handleGiveUp = () => {
-    Alert.alert("Abandonner ?", "Tu vas vraiment laisser gagner la flemme ?", [
-      { text: "Non, je continue", style: "cancel" },
-      {
-        text: "Oui, je suis faible",
-        style: "destructive",
-        onPress: () => {
-          // On récupère les index cochés pour les points partiels
-          const stepIndices = Object.keys(checkedSteps)
-            .filter((key) => checkedSteps[key])
-            .map(Number);
+    Alert.alert(
+      "Abandonner ?",
+      "Tu vas vraiment laisser gagner la flemme ?",
+      [
+        { text: "Non, je continue", style: "cancel" },
+        {
+          text: "Oui, je suis faible",
+          style: "destructive",
+          onPress: () => {
+            setIsTimerActive(false);
+            // On récupère les index cochés pour les points partiels
+            const stepIndices = Object.keys(checkedSteps)
+              .filter((key) => checkedSteps[key])
+              .map(Number);
 
-          dispatch(
-            updateTaskStatus({
-              id: currentTask._id,
-              status: "abandoned",
-              checkedStepIndices: stepIndices,
-              timerFinished: isTimerFinished,
-            })
-          )
-            .unwrap()
-            .then((payload) => {
-              navigation.navigate("CompletionScreen", {
-                isSuccess: false,
-                pointsEarned: payload.pointsEarned || 0,
-                isLevelUp: false, // Pas de level up en cas d'abandon
+            dispatch(
+              updateTaskStatus({
+                id: currentTask._id,
+                status: "abandoned",
+                checkedStepIndices: stepIndices,
+                timerFinished: isTimerFinished,
+              })
+            )
+              .unwrap()
+              .then((payload) => {
+                navigation.navigate("CompletionScreen", {
+                  isSuccess: false,
+                  pointsEarned: payload.pointsEarned || 0,
+                  isLevelUp: false, // Pas de level up en cas d'abandon
+                });
+              })
+              .catch((err) => {
+                console.error(err);
+                // Si le backend dit que c'est déjà fini (400), on redirige l'utilisateur
+                // Le message d'erreur est souvent dans err.message ou err (selon axios/redux)
+                const errorMessage = err?.message || JSON.stringify(err);
+
+                if (
+                  errorMessage.includes("déjà finie") ||
+                  errorMessage.includes("abandonnée") ||
+                  errorMessage.includes("400")
+                ) {
+                  Alert.alert(
+                    "Déjà fait !",
+                    "Cette tâche est déjà cloturée. Retour à l'accueil.",
+                    [
+                      {
+                        text: "OK",
+                        onPress: () =>
+                          navigation.reset({
+                            index: 0,
+                            routes: [{ name: "Main" }],
+                          }),
+                      },
+                    ]
+                  );
+                } else {
+                  Alert.alert(
+                    "Erreur",
+                    "Impossible d'abandonner. Vérifie ta connexion."
+                  );
+                }
               });
-            })
-            .catch((err) => {
-              console.error(err);
-              Alert.alert("Erreur", "Impossible d'abandonner");
-            });
+          },
         },
-      },
-    ]);
+      ],
+      { cancelable: false }
+    );
   };
 
   // Check if all 3 steps are checked
@@ -193,7 +248,7 @@ export default function FocusScreen({ navigation }) {
               duration={duration}
               initialRemainingTime={initialRemainingTime}
               onComplete={handleTimerComplete}
-              isPlaying={true}
+              isPlaying={isTimerActive}
             />
           </View>
 
