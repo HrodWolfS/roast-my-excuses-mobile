@@ -5,11 +5,8 @@ import feedReducer from "./slices/feedSlice";
 
 export const store = configureStore({
   reducer: {
-    // La clé 'auth' permet de faire : state.auth.user
     auth: authReducer,
-    // La clé 'tasks' permet de faire : state.tasks.loading
     tasks: taskReducer,
-    // La clé 'feed' permet de faire : state.feed.items
     feed: feedReducer,
   },
 });

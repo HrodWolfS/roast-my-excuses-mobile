@@ -167,9 +167,9 @@ export default function FeedScreen() {
 
 const styles = StyleSheet.create({
   backgroundImage: { flex: 1 },
-  overlay: { flex: 1, paddingHorizontal: 16, paddingTop: 60 },
+  overlay: { flex: 1, paddingHorizontal: 16, paddingTop: 50 },
   logoWrap: { alignItems: "center", marginBottom: 10 },
-  logo: { width: 80, height: 60 },
+  logo: { width: 160, height: 60 },
   tabs: {
     flexDirection: "row",
     backgroundColor: "rgba(0, 0, 0, 0.41)",
