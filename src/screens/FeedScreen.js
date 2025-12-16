@@ -96,7 +96,7 @@ export default function FeedScreen() {
       <View style={styles.overlay}>
         <View style={styles.logoWrap}>
           <Image
-            source={require("../assets/logo.png")}
+            source={require("../assets/sticker_1.webp")}
             style={styles.logo}
             resizeMode="contain"
           />
