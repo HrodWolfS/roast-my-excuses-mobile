@@ -12,7 +12,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View, 
+  View,
 } from "react-native";
 
 // Redux imports
@@ -143,11 +143,12 @@ export default function CreateFlowScreen({ navigation }) {
                     setTask(t);
                     if (errors.task) setErrors({ ...errors, task: null });
                   }}
-                  maxLength={100}
+                  maxLength={120}
                 />
                 {errors.task && (
                   <Text style={styles.errorText}>{errors.task}</Text>
                 )}
+                <Text style={styles.charCounter}>{task.length}/120</Text>
               </View>
 
               {/* INPUT EXCUSE */}
@@ -164,11 +165,12 @@ export default function CreateFlowScreen({ navigation }) {
                     setExcuse(t);
                     if (errors.excuse) setErrors({ ...errors, excuse: null });
                   }}
-                  maxLength={200}
+                  maxLength={80}
                 />
                 {errors.excuse && (
                   <Text style={styles.errorText}>{errors.excuse}</Text>
                 )}
+                <Text style={styles.charCounter}>{excuse.length}/80</Text>
               </View>
 
               {/* TOGGLE MODE */}
@@ -253,13 +255,13 @@ export default function CreateFlowScreen({ navigation }) {
         </KeyboardDismissWrapper>
       </View>
       <QuotaModal
-          visible={isQuotaModalVisible}
-          onClose={() => setQuotaModalVisible(false)}
-          onNavigateToFeed={() => {
-            setQuotaModalVisible(false);
-            navigation.navigate("Main", { screen: "Feed" });
-          }}
-        />
+        visible={isQuotaModalVisible}
+        onClose={() => setQuotaModalVisible(false)}
+        onNavigateToFeed={() => {
+          setQuotaModalVisible(false);
+          navigation.navigate("Main", { screen: "Feed" });
+        }}
+      />
     </ImageBackground>
   );
 }
@@ -347,6 +349,13 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginLeft: 5,
     fontWeight: "bold",
+  },
+  charCounter: {
+    color: "#9fb6c9",
+    fontSize: 12,
+    textAlign: "right",
+    marginTop: 5,
+    marginRight: 5,
   },
   toggleContainer: {
     flexDirection: "row",
