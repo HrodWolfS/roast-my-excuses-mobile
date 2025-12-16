@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, Vibration, View } from "react-native";
 import { CountdownCircleTimer } from "react-native-countdown-circle-timer";
 
 const CircularTimer = ({
@@ -23,6 +23,7 @@ const CircularTimer = ({
         colors={["#4AEF8C", "#F7B801", "#A30000"]}
         colorsTime={[duration, duration / 2, 0]}
         onComplete={() => {
+          Vibration.vibrate([0, 500, 300, 500, 300, 500]);
           if (onComplete) onComplete();
           return { shouldRepeat: false };
         }}
