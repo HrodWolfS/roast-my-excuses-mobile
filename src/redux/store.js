@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import taskReducer from "./slices/taskSlices";
+import feedReducer from "./slices/feedSlice";
 
 export const store = configureStore({
   reducer: {
@@ -8,5 +9,7 @@ export const store = configureStore({
     auth: authReducer,
     // La clé 'tasks' permet de faire : state.tasks.loading
     tasks: taskReducer,
+    // La clé 'feed' permet de faire : state.feed.items
+    feed: feedReducer,
   },
 });
