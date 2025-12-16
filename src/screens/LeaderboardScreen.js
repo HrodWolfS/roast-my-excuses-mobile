@@ -1,133 +1,172 @@
-import React, { useEffect, useRef, useState } from "react";
-import { 
-  View,
-  Text,
-  StyleSheet,
-  ImageBackground,
-  Pressable,
-  FlatList,
-  RefreshControl,
-  Image,
+import { useEffect, useRef, useState } from "react";
+import {
   ActivityIndicator,
+  FlatList,
+  Image,
+  ImageBackground,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+import { useSelector } from "react-redux";
+import {
+  LeaderboardRow,
+  ROW_HEIGHT,
+  TabButton,
+} from "../components/LeaderboardComponents";
+import api from "../services/api";
 
-const ROW_HEIGHT = 64;
+const FAKE_NAMES = [
+  "KingOfNap",
+  "ProCrastinator",
+  "DemainJure",
+  "CanapéMan",
+  "NetflixWarrior",
+  "PasAujourdhui",
+  "ZeroEffort",
+  "SlowMo",
+  "LaSieste",
+  "MisterDodo",
+  "LazyCat",
+  "ChillBill",
+  "NoStress",
+  "ZenMaster",
+  "SleepyHead",
+  "LaterHater",
+  "DoItTomorrow",
+  "PauseCafé",
+  "RienFaire",
+  "ModeAvion",
+  "BatterieFaible",
+  "EcoEnergy",
+  "StandbyMode",
+  "Lagging",
+  "AFK_Champion",
+  "SnoozeButton",
+  "MorningHater",
+  "NightOwl",
+  "BedLover",
+  "PajamaParty",
+  "SoftLife",
+  "Tranquille",
+  "Pepouze",
+  "Doucement",
+  "PasVite",
+  "CoolRaoul",
+  "RelaxMax",
+  "FlemmeOlympique",
+  "GoldMedalNap",
+  "SiesteKing",
+  "FatigueChronik",
+  "LowPower",
+  "DimancheEternel",
+  "LundiNon",
+  "VendrediOui",
+  "WeekendWarrior",
+  "HolidayMood",
+  "VacancesForever",
+  "RetraiteAnticipee",
+  "BornToChill",
+];
 
-const MOCK_GLOBAL = Array.from({ length: 250 }).map((_, i) => ({
-  userId: i === 120 ? "me" : `u_${i}`,
+const MOCK_GLOBAL_TEMPLATE = Array.from({ length: 50 }).map((_, i) => ({
+  userId: `mock_${i}`,
   rank: i + 1,
-  username: i === 120 ? "MonPseudo" : `Flemmard_${i + 1}`,
-  points: Math.max(0, 2000 - i * 10),
+  username: FAKE_NAMES[i] || `Flemmard_${i + 1}`,
+  points: Math.max(0, 2000 - i * 30),
   leagueIcon: i % 7 === 0 ? "https://picsum.photos/seed/league/40" : null,
 }));
 
 const MOCK_FRIENDS = [];
 
-function TabButton({ label, active, onPress}) {
-  return (
-    <Pressable
-    onPress={onPress}
-    style={[
-      styles.tabButton,
-      active ? styles.tabButtonActive : null,
-    ]}
-    >
-      <Text style={[styles.tabText, active ? styles.tabTextActive : null]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-function LeaderboardRow({ item, isMe }) {
-  const isTopThree = item.rank <= 3;
-  const badgeStyle =
-    item.rank === 1
-      ? styles.rankBadgeGold
-      : item.rank === 2
-      ? styles.rankBadgeSilver
-      : item.rank === 3
-      ? styles.rankBadgeBronze
-      : null;
-
-  return (
-    <View style={[styles.row, isMe ? styles.rowMe : null]}>
-      {isTopThree ? (
-        <View style={[styles.rankBadge, badgeStyle]}>
-          <Text style={[styles.rankText, styles.rankTextTop]}>
-            {item.rank}.
-          </Text>
-        </View>
-      ) : (
-        <Text style={styles.rankText}>{item.rank}.</Text>
-      )}
-
-      <View style={styles.userBlock}>
-        <Text style={[styles.username, isMe ? styles.usernameMe : null]}>
-          {item.username}
-        </Text>
-      </View>
-
-      <Text style={styles.points}>{item.points} pts</Text>
-    </View>
-  );
-}
-
 export default function LeaderboardScreen() {
+  const { user } = useSelector((state) => state.auth);
 
-    const currentUserId = "me";
+  // Robust extraction of user info
+  // If user is string (legacy), it's the username. If object, it has _id and userName.
+  const currentUsername = typeof user === "string" ? user : user?.userName;
+  const currentUserId = typeof user === "object" ? user?._id : null;
 
-    const [activeTab, setActiveTab] = useState("global");
-    const [globalData, setGlobalData] = useState([]);
-    const [friendsData, setFriendsData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState("global");
+  const [leaderboardData, setLeaderboardData] = useState([]); // Données réelles + mocks
+  const [friendsData, setFriendsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-    const listRef = useRef(null);
+  const listRef = useRef(null);
 
-    useEffect(() => {
-      async function load() {
-        setLoading(true);
+  const fetchLeaderboard = async () => {
+    try {
+      // 1. Appel API
+      const response = await api.get("/users/leaderboard?limit=50");
+      console.log("Leaderboard response:", response.data);
+      const realUsers = response.data.data;
 
-        await new Promise((r) => setTimeout(r, 400));
+      // 2. Formatage des données réelles
+      const formattedRealUsers = realUsers.map((u, index) => {
+        // Safe check for "isMe"
+        const isMe = currentUserId
+          ? u._id === currentUserId
+          : u.userName === currentUsername;
 
-        setGlobalData(MOCK_GLOBAL.slice(0, 25));
-        setFriendsData(MOCK_FRIENDS.slice(0, 25));
-
-        setLoading(false);
-      }
-
-      load();
-    }, []);
-
-    const data = activeTab === "global" ? globalData : friendsData;
-
-    useEffect(() => {
-      if (loading) return;
-      if (!data || data.length === 0) return;
-
-      const myIndex = data.findIndex((u) => u.userId === currentUserId);
-      if (myIndex < 0) return;
-
-      requestAnimationFrame(() => {
-        listRef.current?.scrollToIndex({
-          index: myIndex,
-          animated: true,
-          viewPosition: 0.3,
-        });
+        return {
+          userId: u._id,
+          rank: index + 1,
+          username: u.userName,
+          points: u.points,
+          leagueIcon: null, // Pas encore d'icône dynamique
+          isMe: isMe,
+        };
       });
-    }, [loading, activeTab, globalData, friendsData]);
 
-    const onRefresh = async () => {
-      setRefreshing(true);
+      // 3. Fusion avec les mocks (pour remplir la liste comme demandé)
+      // On prend les mocks à partir du rang (nombre de users réels + 1)
+      const offset = formattedRealUsers.length;
+      const effectiveMocks = MOCK_GLOBAL_TEMPLATE.slice(offset).map((m, i) => ({
+        ...m,
+        rank: offset + i + 1, // Recalcul du rang pour suivre la suite
+      }));
 
-      await new Promise((r) => setTimeout(r, 500));
+      return [...formattedRealUsers, ...effectiveMocks];
+    } catch (error) {
+      console.error("Erreur leaderboard:", error);
+      return MOCK_GLOBAL_TEMPLATE; // Fallback mocks si erreur
+    }
+  };
 
-      if (activeTab === "global") setGlobalData(MOCK_GLOBAL.slice(0, 25));
-      else setFriendsData(MOCK_FRIENDS.slice(0, 25));
+  const loadData = async () => {
+    // Si c'est un refresh, on ne met pas loading à true pour ne pas flasher tout l'écran
+    // Mais ici c'est le chargement initial
+    const data = await fetchLeaderboard();
+    setLeaderboardData(data);
+    setFriendsData(MOCK_FRIENDS.slice(0, 25)); // Pas encore de friends API
+    setLoading(false);
+  };
 
-      setRefreshing(false);
-    };
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    const data = await fetchLeaderboard();
+    setLeaderboardData(data);
+    setRefreshing(false);
+  };
+
+  const data = activeTab === "global" ? leaderboardData : friendsData;
+
+  // Scroll to me logic (facultatif si on est dans le top 50, on sera visible)
+  /*
+  useEffect(() => {
+    if (loading || !data || data.length === 0) return;
+    const myIndex = data.findIndex((u) => u.username === currentUsername); // Using username as ID check
+    if (myIndex >= 0) {
+       // Scroll logic here if needed
+    }
+  }, [loading, data, currentUsername]);
+  */
 
   const getItemLayout = (_, index) => ({
     length: ROW_HEIGHT,
@@ -135,115 +174,109 @@ export default function LeaderboardScreen() {
     index,
   });
 
-    if (loading) {
-      return (
-        <View style={styles.screen}>
-          <ImageBackground
+  if (loading) {
+    return (
+      <View style={styles.screen}>
+        <ImageBackground
           source={require("../assets/background.jpg")}
-          style= {styles.fixedBackground}
-          resizeMode="cover"/>
-
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator />
-            <Text style={styles.loadingText}>Chargement du classement...</Text>
-          </View>
+          style={styles.fixedBackground}
+          resizeMode="cover"
+        />
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#BEF264" />
+          <Text style={styles.loadingText}>Chargement des flemmards...</Text>
         </View>
-      );
-    }
+      </View>
+    );
+  }
 
   return (
-<View style={styles.screen}>
+    <View style={styles.screen}>
+      <ImageBackground
+        source={require("../assets/background.jpg")}
+        style={styles.fixedBackground}
+        resizeMode="cover"
+      />
 
-    <ImageBackground
-          source={require("../assets/background.jpg")}
-          style= {styles.fixedBackground}
-          resizeMode="cover"/>
+      <View style={styles.content}>
+        <Text style={styles.title}>Classement</Text>
 
-    <View style={styles.content}>
-      <Text style={styles.title}>Classement</Text>
+        <View style={styles.tabs}>
+          <TabButton
+            label="Monde"
+            active={activeTab === "global"}
+            onPress={() => setActiveTab("global")}
+          />
 
-      <View style={styles.tabs}>
-        <TabButton
-        label="Monde"
-        active={activeTab === "global"}
-        onPress={() => setActiveTab("global")} />
-
-        <TabButton
-        label="Amis"
-        active={activeTab === "friends"}
-        onPress={() => setActiveTab("friends")} />
-      </View>
-
-      <FlatList
-      ref={listRef}
-      style={styles.list}
-      contentContainerStyle={styles.listContent}
-      data={data}
-      keyExtractor={(item) => item.userId}
-      renderItem={({ item }) => (
-        <LeaderboardRow
-        item={item}
-        isMe={item.userId === currentUserId} />
-      )}
-      getItemLayout={getItemLayout}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      ListEmptyComponent={
-        <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>Aucun classement</Text>
-          <Text style={styles.emptyText}>
-            {activeTab === "friends"
-            ? "Ajoute des amis flemmards pour voir les voir ici."
-            : "Le classement est vide pour le moment."}
-          </Text>
+          <TabButton
+            label="Amis"
+            active={activeTab === "friends"}
+            onPress={() => setActiveTab("friends")}
+          />
         </View>
-      }
-      ListHeaderComponent={
-        activeTab === "global" ? (
-          <View style={styles.leagueHeader}>
-            <Image
-              source={require("../assets/ligProCrastinateur.png")}
-              style={styles.leagueHeaderImage}
+
+        <FlatList
+          ref={listRef}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          data={data}
+          keyExtractor={(item) => item.userId.toString()}
+          renderItem={({ item }) => (
+            <LeaderboardRow
+              item={item}
+              isMe={item.username === currentUsername} // Comparaison par username
             />
-          </View>
-        ) : null
-      }
-        onScrollToIndexFailed={(info) => {
-          setTimeout(() => {
-            listRef.current?.scrollToOffset({
-              offset: info.averageItemLength * info.index,
-              animated: true,
-            });
-          }, 50);
-        }}
+          )}
+          getItemLayout={getItemLayout}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#BEF264"
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>Aucun classement</Text>
+              <Text style={styles.emptyText}>
+                {activeTab === "friends"
+                  ? "Ajoute des amis flemmards pour les voir ici."
+                  : "Le classement est vide pour le moment."}
+              </Text>
+            </View>
+          }
+          ListHeaderComponent={
+            activeTab === "global" ? (
+              <View style={styles.leagueHeader}>
+                <Image
+                  source={require("../assets/ligProCrastinateur.png")}
+                  style={styles.leagueHeaderImage}
+                />
+              </View>
+            ) : null
+          }
         />
+      </View>
     </View>
-</View>
   );
 }
 
 const styles = StyleSheet.create({
-
   screen: { flex: 1 },
-
   fixedBackground: {
     ...StyleSheet.absoluteFillObject,
   },
-
   content: {
     flex: 1,
     paddingTop: 60,
     paddingHorizontal: 16,
   },
-
   title: {
     color: "white",
     fontSize: 26,
     fontWeight: "800",
     marginBottom: 12,
   },
-
   tabs: {
     flexDirection: "row",
     backgroundColor: "rgba(0, 0, 0, 0.41)",
@@ -252,23 +285,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#BEF264",
   },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  tabButtonActive: {
-    backgroundColor: "rgba(255,255,255,0.25)",
-  },
-  tabText: {
-    color: "rgba(255,255,255,0.8)",
-    fontWeight: "bold",
-  },
-  tabTextActive: {
-    color: "white",
-    fontWeight: "800",
-  },
-
   list: { flex: 1 },
   listContent: {
     paddingBottom: 24,
@@ -276,7 +292,7 @@ const styles = StyleSheet.create({
   leagueHeader: {
     height: 100,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   leagueHeaderImage: {
     marginTop: 11,
@@ -284,55 +300,13 @@ const styles = StyleSheet.create({
     height: 770,
     borderRadius: 12,
   },
-
-  row: {
-    height: ROW_HEIGHT,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    marginBottom: 10,
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  rowMe: {
-    backgroundColor: "rgba(255,59,48,0.35)",
-    borderWidth: 1,
-    borderColor: "rgba(255,59,48,0.9)",
-  },
-  rankBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-    backgroundColor: "rgba(255,255,255,0.5)",
-    borderWidth: 0,
-  },
-  rankBadgeGold: { backgroundColor: "rgba(245,210,97,0.5)" },
-  rankBadgeSilver: { backgroundColor: "rgba(224,229,236,0.5)" },
-  rankBadgeBronze: { backgroundColor: "rgba(224,176,138,0.5)" },
-  rankText: { color: "white", fontWeight: "800", fontSize: 16, marginRight: 10 },
-  rankTextTop: { color: "#1f2937", marginRight: 0 },
-  userBlock: { flex: 1 },
-  username: { color: "white", fontWeight: "700" },
-  usernameMe: { fontWeight: "900" },
-  points: {
-    width: 110,
-    color: "white",
-    textAlign: "right",
-    fontWeight: "800",
-  },
-
   empty: {
     marginTop: 18,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.25)",
   },
   emptyTitle: { color: "white", fontWeight: "800", marginBottom: 6 },
   emptyText: { color: "rgba(255,255,255,0.85)" },
-
   loadingOverlay: {
     flex: 1,
     alignItems: "center",

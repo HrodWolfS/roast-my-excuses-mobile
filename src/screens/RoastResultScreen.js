@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
 import {
+  BackHandler,
   ImageBackground,
   ScrollView,
   StatusBar,
