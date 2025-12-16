@@ -49,7 +49,7 @@ export const registerUser = createAsyncThunk(
 
       // Sauvegarde des données pour la persistance (connexion automatique)
       await AsyncStorage.setItem("token", data.token);
-      await AsyncStorage.setItem("user", JSON.stringify(data.userName));
+      await AsyncStorage.setItem("user", JSON.stringify(data.user)); // Store full user object
 
       return data;
     } catch (error) {
@@ -80,7 +80,7 @@ export const loginUser = createAsyncThunk(
 
       // Sauvegarde des données pour la persistance
       await AsyncStorage.setItem("token", data.token);
-      await AsyncStorage.setItem("user", JSON.stringify(data.userName));
+      await AsyncStorage.setItem("user", JSON.stringify(data.user)); // Store full user object
 
       return data;
     } catch (error) {
@@ -137,7 +137,7 @@ const authSlice = createSlice({
     });
     builder.addCase(registerUser.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.user = action.payload.userName;
+      state.user = action.payload.user; // Store full user object
       state.token = action.payload.token;
       state.isAuthenticated = true;
     });
@@ -153,7 +153,7 @@ const authSlice = createSlice({
     });
     builder.addCase(loginUser.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.user = action.payload.userName;
+      state.user = action.payload.user; // Store full user object
       state.token = action.payload.token;
       state.isAuthenticated = true;
     });
