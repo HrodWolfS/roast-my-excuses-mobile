@@ -88,6 +88,19 @@ export default function LeaderboardScreen() {
   const currentUsername = typeof user === "string" ? user : user?.userName;
   const currentUserId = typeof user === "object" ? user?._id : null;
 
+  // Mapping des ligues vers les images
+  const LEAGUE_BANNERS = {
+    Bronze: require("../assets/leagues/ProEndormi.png"),
+    Silver: require("../assets/leagues/ProCrastinateur.png"),
+    Gold: require("../assets/leagues/ProFlemmard.png"),
+    Diamond: require("../assets/leagues/ProActif.png"),
+  };
+
+  const currentLeague =
+    typeof user === "object" ? user?.currentLeague : "Bronze";
+  const bannerSource =
+    LEAGUE_BANNERS[currentLeague] || LEAGUE_BANNERS["Bronze"];
+
   const [activeTab, setActiveTab] = useState("global");
   const [leaderboardData, setLeaderboardData] = useState([]); // Données réelles + mocks
   const [friendsData, setFriendsData] = useState([]);
@@ -99,7 +112,9 @@ export default function LeaderboardScreen() {
   const fetchLeaderboard = async () => {
     try {
       // 1. Appel API
-      const response = await api.get("/users/leaderboard?limit=50");
+      const response = await api.get(
+        `/users/leaderboard?limit=50&scope=${activeTab}`
+      );
       console.log("Leaderboard response:", response.data);
       const realUsers = response.data.data;
 
@@ -120,33 +135,36 @@ export default function LeaderboardScreen() {
         };
       });
 
-      // 3. Fusion avec les mocks (pour remplir la liste comme demandé)
-      // On prend les mocks à partir du rang (nombre de users réels + 1)
-      const offset = formattedRealUsers.length;
-      const effectiveMocks = MOCK_GLOBAL_TEMPLATE.slice(offset).map((m, i) => ({
-        ...m,
-        rank: offset + i + 1, // Recalcul du rang pour suivre la suite
-      }));
+      // 3. Si global, on comble avec des mocks. Si friends, on garde juste la liste.
+      if (activeTab === "global") {
+        const offset = formattedRealUsers.length;
+        const effectiveMocks = MOCK_GLOBAL_TEMPLATE.slice(offset).map(
+          (m, i) => ({
+            ...m,
+            rank: offset + i + 1,
+          })
+        );
+        return [...formattedRealUsers, ...effectiveMocks];
+      }
 
-      return [...formattedRealUsers, ...effectiveMocks];
+      return formattedRealUsers;
     } catch (error) {
       console.error("Erreur leaderboard:", error);
-      return MOCK_GLOBAL_TEMPLATE; // Fallback mocks si erreur
+      // Fallback mocks uniquement sur global
+      return activeTab === "global" ? MOCK_GLOBAL_TEMPLATE : [];
     }
   };
 
   const loadData = async () => {
-    // Si c'est un refresh, on ne met pas loading à true pour ne pas flasher tout l'écran
-    // Mais ici c'est le chargement initial
+    setLoading(true); // Afficher chargement au switch d'onglet
     const data = await fetchLeaderboard();
     setLeaderboardData(data);
-    setFriendsData(MOCK_FRIENDS.slice(0, 25)); // Pas encore de friends API
     setLoading(false);
   };
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [activeTab]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -155,7 +173,7 @@ export default function LeaderboardScreen() {
     setRefreshing(false);
   };
 
-  const data = activeTab === "global" ? leaderboardData : friendsData;
+  const data = leaderboardData;
 
   // Scroll to me logic (facultatif si on est dans le top 50, on sera visible)
   /*
@@ -199,7 +217,13 @@ export default function LeaderboardScreen() {
       />
 
       <View style={styles.content}>
-        <Text style={styles.title}>Classement</Text>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
         <View style={styles.tabs}>
           <TabButton
@@ -224,7 +248,7 @@ export default function LeaderboardScreen() {
           renderItem={({ item }) => (
             <LeaderboardRow
               item={item}
-              isMe={item.username === currentUsername} 
+              isMe={item.username === currentUsername}
             />
           )}
           getItemLayout={getItemLayout}
@@ -249,8 +273,9 @@ export default function LeaderboardScreen() {
             activeTab === "global" ? (
               <View style={styles.leagueHeader}>
                 <Image
-                  source={require("../assets/leagues/ProCrastinateur.png")}
+                  source={bannerSource}
                   style={styles.leagueHeaderImage}
+                  resizeMode="contain"
                 />
               </View>
             ) : null
@@ -268,7 +293,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: 60,
+    paddingTop: 50,
     paddingHorizontal: 16,
   },
   title: {
@@ -277,16 +302,25 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginBottom: 12,
   },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  logo: {
+    width: 160,
+    height: 60,
+  },
   tabs: {
     flexDirection: "row",
-    backgroundColor: "rgba(0, 0, 0, 0.41)",
+    backgroundColor: "rgba(13, 18, 31, 0.6)",
     borderRadius: 12,
-    overflow: "hidden",
+    padding: 4,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#BEF264",
+    borderColor: "#c9ff53",
   },
-  list: { 
-    flex: 1 
+  list: {
+    flex: 1,
   },
   listContent: {
     paddingBottom: 24,
@@ -303,20 +337,20 @@ const styles = StyleSheet.create({
     height: 100,
     marginTop: 20,
     marginBottom: 20,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   empty: {
     marginTop: 18,
     padding: 16,
     borderRadius: 12,
   },
-  emptyTitle: { 
-    color: "white", 
-    fontWeight: "800", 
-    marginBottom: 6 
+  emptyTitle: {
+    color: "white",
+    fontWeight: "800",
+    marginBottom: 6,
   },
-  emptyText: { 
-    color: "rgba(255,255,255,0.85)" 
+  emptyText: {
+    color: "rgba(255,255,255,0.85)",
   },
   loadingOverlay: {
     flex: 1,
