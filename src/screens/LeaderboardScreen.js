@@ -88,6 +88,19 @@ export default function LeaderboardScreen() {
   const currentUsername = typeof user === "string" ? user : user?.userName;
   const currentUserId = typeof user === "object" ? user?._id : null;
 
+  // Mapping des ligues vers les images
+  const LEAGUE_BANNERS = {
+    Bronze: require("../assets/leagues/ProEndormi.png"),
+    Silver: require("../assets/leagues/ProCrastinateur.png"),
+    Gold: require("../assets/leagues/ProFlemmard.png"),
+    Diamond: require("../assets/leagues/ProActif.png"),
+  };
+
+  const currentLeague =
+    typeof user === "object" ? user?.currentLeague : "Bronze";
+  const bannerSource =
+    LEAGUE_BANNERS[currentLeague] || LEAGUE_BANNERS["Bronze"];
+
   const [activeTab, setActiveTab] = useState("global");
   const [leaderboardData, setLeaderboardData] = useState([]); // Données réelles + mocks
   const [friendsData, setFriendsData] = useState([]);
@@ -260,8 +273,9 @@ export default function LeaderboardScreen() {
             activeTab === "global" ? (
               <View style={styles.leagueHeader}>
                 <Image
-                  source={require("../assets/leagues/ProCrastinateur.png")}
+                  source={bannerSource}
                   style={styles.leagueHeaderImage}
+                  resizeMode="contain"
                 />
               </View>
             ) : null
