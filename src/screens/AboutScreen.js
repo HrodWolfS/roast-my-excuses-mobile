@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   // NOUVEAU STYLE POUR LE LOGO (Plus de bordure, plus de fond)
   logo: {
-    width: 120, // Un peu plus grand que le placeholder pour que ça claque
+    width: 120,
     height: 120,
     marginBottom: 16,
   },

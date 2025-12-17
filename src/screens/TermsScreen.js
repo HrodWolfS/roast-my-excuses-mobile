@@ -12,7 +12,7 @@ import { TERMS_TEXT } from "../constants/legalText";
 const COLORS = {
   primary: "#4AEF8C",
   text: "#FFFFFF",
-  card: "rgba(13, 18, 31, 0.85)", // Fond texte bien lisible
+  card: "rgba(13, 18, 31, 0.85)",
 };
 
 export default function TermsScreen() {
@@ -35,10 +35,10 @@ export default function TermsScreen() {
 
 const styles = StyleSheet.create({
   backgroundImage: { flex: 1, width: "100%", height: "100%" },
-  container: { flex: 1 }, // Pas de couleur de fond ici, on laisse voir l'image
+  container: { flex: 1 },
   content: { padding: 20, paddingTop: 100 },
   textContainer: {
-    backgroundColor: COLORS.card, // Le bloc de texte a son propre fond sombre
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
