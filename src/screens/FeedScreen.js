@@ -1,4 +1,5 @@
 ﻿import { FontAwesome5 } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import {
   FlatList,
@@ -55,33 +56,43 @@ export default function FeedScreen() {
       : "@anonyme";
     const isMe =
       rawUser &&
-      currentUser &&
-      String(rawUser).replace(/^@?/, "") ===
-        String(currentUser).replace(/^@?/, "");
+      currentUser?.userName &&
+      String(rawUser).replace(/^@?/, "").toLowerCase() ===
+        String(currentUser.userName).replace(/^@?/, "").toLowerCase();
 
     return (
-      <View style={styles.card}>
-        <View style={styles.userRow}>
-          <Text style={[styles.userName, isMe && styles.userNameMe]}>
-            {displayUser}
-          </Text>
-          <Pressable style={styles.likeRow} onPress={() => toggleLike(item.id)}>
-            <FontAwesome5
-              name="pepper-hot"
-              size={22}
-              color={item.isLiked ? "#f71e1e" : "#fff"}
-              solid
-            />
-            <Text style={styles.likeText}>{item.upvotes}</Text>
-          </Pressable>
+      <LinearGradient
+        colors={["#c9ff53", "#22d3ee"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.cardGradientBorder}
+      >
+        <View style={styles.cardContent}>
+          <View style={styles.userRow}>
+            <Text style={[styles.userName, isMe && styles.userNameMe]}>
+              {displayUser}
+            </Text>
+            <Pressable
+              style={styles.likeRow}
+              onPress={() => toggleLike(item.id)}
+            >
+              <FontAwesome5
+                name="pepper-hot"
+                size={22}
+                color={item.isLiked ? "#f71e1e" : "#fff"}
+                solid
+              />
+              <Text style={styles.likeText}>{item.upvotes}</Text>
+            </Pressable>
+          </View>
+          <View style={styles.roastBox}>
+            {taskLabel ? (
+              <Text style={styles.taskText}>Tâche : {taskLabel}</Text>
+            ) : null}
+            <Text style={styles.roastText}>Roast : {item.roast}</Text>
+          </View>
         </View>
-        <View style={styles.roastBox}>
-          {taskLabel ? (
-            <Text style={styles.taskText}>Tâche : {taskLabel}</Text>
-          ) : null}
-          <Text style={styles.roastText}>Roast : {item.roast}</Text>
-        </View>
-      </View>
+      </LinearGradient>
     );
   };
 
@@ -200,13 +211,20 @@ const styles = StyleSheet.create({
   },
   list: { paddingBottom: 30 },
   listEmpty: { flexGrow: 1, justifyContent: "center" },
-  card: {
-    backgroundColor: "rgba(10, 15, 30, 0.85)",
-    borderRadius: 18,
+  cardGradientBorder: {
+    borderRadius: 20,
+    padding: 1.5,
+    marginBottom: 15,
+    shadowColor: "#c9ff53",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  cardContent: {
+    backgroundColor: "rgba(15, 23, 42, 0.95)", // DARK_CARD equivalent
+    borderRadius: 19,
     padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "rgba(108,255,156,0.3)",
   },
   userRow: {
     flexDirection: "row",
@@ -215,7 +233,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   userName: { color: "#CFFFE0", fontSize: 14, fontWeight: "800" },
-  userNameMe: { color: "#BEF264" },
+  userNameMe: {
+    color: "#22d3ee",
+    fontSize: 15,
+    fontWeight: "900",
+    textShadowColor: "rgba(34, 211, 238, 0.5)",
+    textShadowRadius: 8,
+  },
   roastBox: {
     backgroundColor: "rgba(108,255,156,0.1)",
     borderRadius: 14,
