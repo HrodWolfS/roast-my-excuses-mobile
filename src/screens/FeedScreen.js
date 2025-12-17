@@ -24,14 +24,14 @@ export default function FeedScreen() {
     [...arr].sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
 
   useEffect(() => {
-    dispatch(getFeed());
-  }, [dispatch]);
+    dispatch(getFeed(activeTab));
+  }, [dispatch, activeTab]);
 
   useEffect(() => {
     setFeed(sortByUpvotes(items || []));
   }, [items]);
 
-  const onRefresh = () => dispatch(getFeed());
+  const onRefresh = () => dispatch(getFeed(activeTab));
 
   const toggleLike = async (id) => {
     try {
@@ -85,7 +85,7 @@ export default function FeedScreen() {
     );
   };
 
-  const dataToRender = activeTab === "friends" ? [] : feed;
+  const dataToRender = feed;
 
   return (
     <ImageBackground

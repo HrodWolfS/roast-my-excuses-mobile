@@ -99,7 +99,9 @@ export default function LeaderboardScreen() {
   const fetchLeaderboard = async () => {
     try {
       // 1. Appel API
-      const response = await api.get("/users/leaderboard?limit=50");
+      const response = await api.get(
+        `/users/leaderboard?limit=50&scope=${activeTab}`
+      );
       console.log("Leaderboard response:", response.data);
       const realUsers = response.data.data;
 
@@ -120,33 +122,36 @@ export default function LeaderboardScreen() {
         };
       });
 
-      // 3. Fusion avec les mocks (pour remplir la liste comme demandé)
-      // On prend les mocks à partir du rang (nombre de users réels + 1)
-      const offset = formattedRealUsers.length;
-      const effectiveMocks = MOCK_GLOBAL_TEMPLATE.slice(offset).map((m, i) => ({
-        ...m,
-        rank: offset + i + 1, // Recalcul du rang pour suivre la suite
-      }));
+      // 3. Si global, on comble avec des mocks. Si friends, on garde juste la liste.
+      if (activeTab === "global") {
+        const offset = formattedRealUsers.length;
+        const effectiveMocks = MOCK_GLOBAL_TEMPLATE.slice(offset).map(
+          (m, i) => ({
+            ...m,
+            rank: offset + i + 1,
+          })
+        );
+        return [...formattedRealUsers, ...effectiveMocks];
+      }
 
-      return [...formattedRealUsers, ...effectiveMocks];
+      return formattedRealUsers;
     } catch (error) {
       console.error("Erreur leaderboard:", error);
-      return MOCK_GLOBAL_TEMPLATE; // Fallback mocks si erreur
+      // Fallback mocks uniquement sur global
+      return activeTab === "global" ? MOCK_GLOBAL_TEMPLATE : [];
     }
   };
 
   const loadData = async () => {
-    // Si c'est un refresh, on ne met pas loading à true pour ne pas flasher tout l'écran
-    // Mais ici c'est le chargement initial
+    setLoading(true); // Afficher chargement au switch d'onglet
     const data = await fetchLeaderboard();
     setLeaderboardData(data);
-    setFriendsData(MOCK_FRIENDS.slice(0, 25)); // Pas encore de friends API
     setLoading(false);
   };
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [activeTab]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -155,7 +160,7 @@ export default function LeaderboardScreen() {
     setRefreshing(false);
   };
 
-  const data = activeTab === "global" ? leaderboardData : friendsData;
+  const data = leaderboardData;
 
   // Scroll to me logic (facultatif si on est dans le top 50, on sera visible)
   /*
