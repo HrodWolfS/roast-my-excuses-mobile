@@ -19,7 +19,7 @@ export const createTask = createAsyncThunk(
       console.error("REDUX THUNK: API Error:", error);
       return rejectWithValue({
         message: error.response?.data?.message || "Erreur lors du roast",
-        status: error.response?.status 
+        status: error.response?.status,
       });
     }
   }
@@ -90,6 +90,21 @@ export const getMyTasks = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Erreur récupération de mes tâches"
+      );
+    }
+  }
+);
+
+// 5. Toggle Visibility (Public/Private)
+export const toggleTaskVisibility = createAsyncThunk(
+  "tasks/toggleVisibility",
+  async (taskId, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/tasks/${taskId}/visibility`);
+      return { id: taskId, isPublic: response.data.isPublic };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Erreur toggle visibility"
       );
     }
   }
@@ -197,6 +212,20 @@ const taskSlice = createSlice({
       .addCase(getMyTasks.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      // --- Gestion de toggleTaskVisibility ---
+      .addCase(toggleTaskVisibility.fulfilled, (state, action) => {
+        const { id, isPublic } = action.payload;
+        // Update dans la liste
+        const taskInList = state.tasks.find((t) => t._id === id);
+        if (taskInList) {
+          taskInList.isPublic = isPublic;
+        }
+        // Update task courante si match
+        if (state.currentTask && state.currentTask._id === id) {
+          state.currentTask.isPublic = isPublic;
+        }
       });
   },
 });

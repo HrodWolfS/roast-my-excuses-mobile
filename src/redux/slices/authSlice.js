@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import api from "../../services/api";
 
 const initialState = {
   user: null,
@@ -50,20 +51,23 @@ export const registerUser = createAsyncThunk(
       }
 
       // Sauvegarde des données pour la persistance (connexion automatique)
-      const userToSave = data.user || data.data; 
+      const userToSave = data.user || data.data;
       const tokenToSave = data.token;
 
       if (!userToSave) {
-        throw new Error("L'inscription a réussi mais aucune info utilisateur reçue.");
+        throw new Error(
+          "L'inscription a réussi mais aucune info utilisateur reçue."
+        );
       }
 
       await AsyncStorage.setItem("token", tokenToSave);
       await AsyncStorage.setItem("user", JSON.stringify(userToSave));
 
       return { token: tokenToSave, user: userToSave };
-
     } catch (error) {
-      return rejectWithValue(error.message || "Impossible de contacter le serveur.");
+      return rejectWithValue(
+        error.message || "Impossible de contacter le serveur."
+      );
     }
   }
 );
@@ -92,8 +96,12 @@ export const loginUser = createAsyncThunk(
       const tokenToSave = data.token;
 
       if (!userToSave) {
-        console.error("ERREUR CRITIQUE : Le backend n'a pas renvoyé l'objet user !");
-        throw new Error("Erreur technique : Profil introuvable dans la réponse.");
+        console.error(
+          "ERREUR CRITIQUE : Le backend n'a pas renvoyé l'objet user !"
+        );
+        throw new Error(
+          "Erreur technique : Profil introuvable dans la réponse."
+        );
       }
 
       // Sauvegarde des données pour la persistance
@@ -104,6 +112,25 @@ export const loginUser = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || "Impossible de contacter le serveur."
+      );
+    }
+  }
+);
+
+// Mettre à jour le profil (ex: isPublic)
+export const updateProfile = createAsyncThunk(
+  "auth/updateProfile",
+  async (updates, { rejectWithValue }) => {
+    try {
+      const response = await api.patch("/users/me", updates);
+      return response.data.data; // { isPublic: ..., message: ... }
+    } catch (error) {
+      console.error(
+        "AXIOS ERROR DETAILS:",
+        error.toJSON ? error.toJSON() : error
+      );
+      return rejectWithValue(
+        error.response?.data?.error || "Erreur mise à jour profil"
       );
     }
   }
@@ -178,6 +205,16 @@ const authSlice = createSlice({
     builder.addCase(loginUser.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
+    });
+
+    // Gestion de updateProfile
+    builder.addCase(updateProfile.fulfilled, (state, action) => {
+      // On met à jour le user dans le state si les champs existent
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+      }
+      // On update aussi AsyncStorage pour persister
+      AsyncStorage.mergeItem("user", JSON.stringify(action.payload));
     });
   },
 });

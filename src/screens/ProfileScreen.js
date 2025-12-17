@@ -1,24 +1,24 @@
-import React, { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  Alert,
-  Modal,
-  Switch,
-  TextInput,
   ActivityIndicator,
-  ScrollView,
+  Alert,
+  Image,
   ImageBackground,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useDispatch } from "react-redux";
-import { logout } from "../redux/slices/authSlice";
-import * as Clipboard from "expo-clipboard";
-import { Ionicons } from "@expo/vector-icons";
+import { logout, updateProfile } from "../redux/slices/authSlice";
 import api from "../services/api";
-import { LinearGradient } from "expo-linear-gradient";
 
 // --- MAPPING DES IMAGES DE LIGUE ---
 const leagueImages = {
@@ -82,8 +82,16 @@ export default function ProfileScreen() {
     dispatch(logout());
   };
 
-  const toggleSwitch = () => {
-    setIsPublic((prev) => !prev);
+  const toggleSwitch = async () => {
+    try {
+      const newValue = !isPublic;
+      setIsPublic(newValue); // Optimistic UI
+      await dispatch(updateProfile({ isPublic: newValue })).unwrap();
+    } catch (error) {
+      console.error("TOGGLE SWITCH ERROR:", error);
+      setIsPublic(!isPublic); // Rollback if error
+      Alert.alert("Erreur", "Impossible de mettre à jour le profil.");
+    }
   };
 
   const copyToClipboard = async () => {
@@ -94,7 +102,7 @@ export default function ProfileScreen() {
   };
 
   const handleSearchFriend = async () => {
-    // vérif 
+    // vérif
     if (searchCode.length < 6) {
       Alert.alert("Trop court", "Le code ami doit faire 6 caractères.");
       return;
@@ -102,17 +110,17 @@ export default function ProfileScreen() {
 
     try {
       // call backend pour add l'ami direct
-      const response = await api.post("/users/friends", { 
-        friendCode: searchCode 
+      const response = await api.post("/users/friends", {
+        friendCode: searchCode,
       });
 
-      // Succès 
+      // Succès
       Alert.alert("Nouveau Pote ! 🤝", response.data.message);
-      setSearchCode(""); 
-
+      setSearchCode("");
     } catch (error) {
       // Gestion des erreurs (Code faux, déjà amis, auto-ajout...)
-      const message = error.response?.data?.message || "Impossible d'ajouter cet ami.";
+      const message =
+        error.response?.data?.message || "Impossible d'ajouter cet ami.";
       Alert.alert("Oups", message);
     }
   };
@@ -137,9 +145,7 @@ export default function ProfileScreen() {
       resizeMode="cover"
       backgroundColor={DARK_BG}
     >
-      
       <View style={styles.mainContainer}>
-        
         {/* HEADER */}
         <View style={styles.header}>
           <Image
@@ -179,7 +185,6 @@ export default function ProfileScreen() {
               style={styles.neonBorderContainer}
             >
               <View style={styles.statsContainer}>
-
                 {/* LIGNE 1 : Points & Niveau */}
                 <View style={styles.statsRow}>
                   <View style={styles.statItem}>
@@ -375,7 +380,7 @@ const styles = StyleSheet.create({
     padding: 1.5,
     shadowColor: NEON_CYAN,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2, 
+    shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
   },

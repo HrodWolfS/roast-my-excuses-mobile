@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -17,7 +18,11 @@ import {
   FilterTab,
   StatusBadge,
 } from "../components/TaskComponents";
-import { getMyTasks, setCurrentTask } from "../redux/slices/taskSlices";
+import {
+  getMyTasks,
+  setCurrentTask,
+  toggleTaskVisibility,
+} from "../redux/slices/taskSlices";
 
 export default function TasksScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -36,15 +41,33 @@ export default function TasksScreen({ navigation }) {
   // Filtrage optimisé
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
+      // 1. Logique spécifique pour l'onglet 'roasty'
+      if (activeFilter === "roasty") {
+        return task.type === "roasty";
+      }
+
+      // 2. Pour les autres onglets, on EXCLUT les 'roasty'
+      // On ne veut voir que les 'challenge' (ou undefined qui est par défaut challenge)
+      if (task.type === "roasty") return false;
+
+      // 3. Filtrage classique par statut
       if (activeFilter === "pending") return task.status === "pending";
       if (activeFilter === "abandoned") return task.status === "abandoned";
       if (activeFilter === "completed") return task.status === "completed";
+
       return true;
     });
   }, [tasks, activeFilter]);
 
   // Interaction Logic
   const handleTaskPress = (item) => {
+    // Si c'est un roast pur (Lecture seule) -> On ouvre la modale simple direct
+    if (item.type === "roasty") {
+      setSelectedTask(item);
+      setModalVisible(true);
+      return;
+    }
+
     if (item.status === "pending") {
       // Si pending -> On set la tâche active et on lance le flow
       dispatch(setCurrentTask(item));
@@ -72,7 +95,7 @@ export default function TasksScreen({ navigation }) {
           <Text style={styles.taskTitle} numberOfLines={1}>
             {item.description}
           </Text>
-          <StatusBadge status={item.status} />
+          {item.type !== "roasty" && <StatusBadge status={item.status} />}
         </View>
         <Text style={styles.taskExcuse} numberOfLines={2}>
           💭 "{item.excuse}"
@@ -120,6 +143,12 @@ export default function TasksScreen({ navigation }) {
               active={activeFilter}
               onPress={setActiveFilter}
             />
+            <FilterTab
+              title="Roasty"
+              value="roasty"
+              active={activeFilter}
+              onPress={setActiveFilter}
+            />
           </View>
 
           {/* --- LIST --- */}
@@ -158,6 +187,35 @@ export default function TasksScreen({ navigation }) {
               <Text style={styles.modalText}>
                 "{selectedTask?.roastContent}"
               </Text>
+
+              {/* --- DISCREET TOGGLE VISIBILITY --- */}
+              <TouchableOpacity
+                style={styles.discreetToggle}
+                onPress={() => {
+                  const newStatus = !selectedTask.isPublic;
+                  // UI Optimistic Update
+                  setSelectedTask((prev) => ({ ...prev, isPublic: newStatus }));
+                  // Redux Dispatch
+                  dispatch(toggleTaskVisibility(selectedTask._id));
+                }}
+              >
+                <Ionicons
+                  name={selectedTask?.isPublic ? "eye" : "eye-off"}
+                  size={20}
+                  color={selectedTask?.isPublic ? "#4AEF8C" : "#94a3b8"}
+                />
+                <Text
+                  style={[
+                    styles.discreetToggleText,
+                    { color: selectedTask?.isPublic ? "#4AEF8C" : "#94a3b8" },
+                  ]}
+                >
+                  {selectedTask?.isPublic
+                    ? "Visible dans le feed"
+                    : "Roast Privé"}
+                </Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.modalButton}
                 onPress={() => setModalVisible(false)}
@@ -180,7 +238,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(4, 12, 30, 0.85)",
+    // backgroundColor: "rgba(4, 12, 30, 0.85)", // Removed as per user request
   },
   container: {
     flex: 1,
@@ -302,5 +360,16 @@ const styles = StyleSheet.create({
     color: "#040C1E",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  discreetToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 24,
+    padding: 8,
+  },
+  discreetToggleText: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
   },
 });
