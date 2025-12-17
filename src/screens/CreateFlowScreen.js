@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ScrollView
 } from "react-native";
 
 // Redux imports
@@ -126,8 +127,14 @@ export default function CreateFlowScreen({ navigation }) {
         <KeyboardDismissWrapper>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.container}
+            style={{ flex: 1 }} 
+            keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
           >
+            <ScrollView 
+              contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between' }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled" 
+            >
             <View style={styles.formContainer}>
               {/* INPUT TÂCHE */}
               <View style={styles.inputGroup}>
@@ -215,7 +222,7 @@ export default function CreateFlowScreen({ navigation }) {
                   : "Juste un roast brutal pour rire."}
               </Text>
             </View>
-
+            </ScrollView>
             {/* BOUTON VALIDER */}
             <View style={styles.footer}>
               {/* Affichage de l'erreur API si elle existe */}

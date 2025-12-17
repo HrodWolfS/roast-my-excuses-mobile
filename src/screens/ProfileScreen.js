@@ -16,6 +16,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useDispatch } from "react-redux";
 import { logout, updateProfile } from "../redux/slices/authSlice";
@@ -169,6 +171,7 @@ export default function ProfileScreen() {
     >
       <View style={styles.mainContainer}>
         {/* HEADER */}
+
         <View style={styles.header}>
           <Image
             source={require("../assets/logo.png")}
@@ -183,112 +186,119 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
         >
-          {/* --- BLOC PROFIL --- */}
-          <View style={styles.profileCard}>
-            <Text style={styles.userName}>
-              {userProfile.userName || "Pseudo Inconnu"}
-            </Text>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* --- BLOC PROFIL --- */}
+            <View style={styles.profileCard}>
+              <Text style={styles.userName}>
+                {userProfile.userName || "Pseudo Inconnu"}
+              </Text>
 
-            <Image
-              source={currentLeagueImage}
-              style={styles.leagueBanner}
-              resizeMode="contain"
-            />
+              <Image
+                source={currentLeagueImage}
+                style={styles.leagueBanner}
+                resizeMode="contain"
+              />
 
-            {/* --- GRILLE STATS 2x2 --- */}
-            <LinearGradient
-              colors={[NEON_CYAN, NEON_GREEN]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.neonBorderContainer}
-            >
-              <View style={styles.statsContainer}>
-                {/* LIGNE 1 : Points & Niveau */}
-                <View style={styles.statsRow}>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{userProfile.points}</Text>
-                    <Text style={styles.statLabel}>Points</Text>
+              {/* --- GRILLE STATS 2x2 --- */}
+              <LinearGradient
+                colors={[NEON_CYAN, NEON_GREEN]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.neonBorderContainer}
+              >
+                <View style={styles.statsContainer}>
+                  {/* LIGNE 1 : Points & Niveau */}
+                  <View style={styles.statsRow}>
+                    <View style={styles.statItem}>
+                      <Text style={styles.statValue}>{userProfile.points}</Text>
+                      <Text style={styles.statLabel}>Points</Text>
+                    </View>
+                    <View style={styles.verticalDivider} />
+                    <View style={styles.statItem}>
+                      <Text style={styles.statValue}>{userProfile.level}</Text>
+                      <Text style={styles.statLabel}>Niveau</Text>
+                    </View>
                   </View>
-                  <View style={styles.verticalDivider} />
-                  <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{userProfile.level}</Text>
-                    <Text style={styles.statLabel}>Niveau</Text>
+
+                  {/* SÉPARATEUR HORIZONTAL */}
+                  <View style={styles.horizontalDivider} />
+
+                  {/* LIGNE 2 : Streak & Tâches */}
+                  <View style={styles.statsRow}>
+                    <View style={styles.statItem}>
+                      <Text style={styles.statValue}>
+                        {userProfile.streak || 0}{" "}
+                      </Text>
+                      <Text style={styles.statLabel}>Série jour</Text>
+                    </View>
+                    <View style={styles.verticalDivider} />
+                    <View style={styles.statItem}>
+                      <Text style={styles.statValue}>
+                        {userProfile.tasksCompleted || 0}{" "}
+                      </Text>
+                      <Text style={styles.statLabel}>Tâches finies</Text>
+                    </View>
                   </View>
                 </View>
+              </LinearGradient>
+            </View>
 
-                {/* SÉPARATEUR HORIZONTAL */}
-                <View style={styles.horizontalDivider} />
+            {/* --- BLOC SOCIAL (STYLE NÉON) --- */}
+            <LinearGradient
+              colors={[NEON_GREEN, NEON_CYAN]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.neonBorderContainerSocial}
+            >
+              <View style={styles.socialSectionInner}>
+                <Text style={styles.sectionTitle}>Ton Code Ami</Text>
+                <TouchableOpacity
+                  onPress={copyToClipboard}
+                  style={styles.myCodeBox}
+                >
+                  <Text style={styles.codeText}>{userProfile.friendCode}</Text>
+                  <Ionicons
+                    name="copy-outline"
+                    size={20}
+                    color={NEON_CYAN}
+                    style={{ marginLeft: 10 }}
+                  />
+                </TouchableOpacity>
 
-                {/* LIGNE 2 : Streak & Tâches */}
-                <View style={styles.statsRow}>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
-                      {userProfile.streak || 0}{" "}
-                    </Text>
-                    <Text style={styles.statLabel}>Série jour</Text>
-                  </View>
-                  <View style={styles.verticalDivider} />
-                  <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
-                      {userProfile.tasksCompleted || 0}{" "}
-                    </Text>
-                    <Text style={styles.statLabel}>Tâches finies</Text>
-                  </View>
+                <Text style={[styles.sectionTitle, { marginTop: 15 }]}>
+                  Ajouter un Ami
+                </Text>
+                <View style={styles.searchBoxWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Code Ami (ex: B4N1E7)"
+                    placeholderTextColor={"#94a3b8"}
+                    value={searchCode}
+                    onChangeText={(text) => setSearchCode(text.toUpperCase())}
+                    maxLength={6}
+                  />
+                  <TouchableOpacity onPress={handleSearchFriend}>
+                    <LinearGradient
+                      colors={[NEON_CYAN, NEON_GREEN]}
+                      style={styles.searchBtnGradient}
+                    >
+                      <Ionicons name="search" size={24} color="#0f172a" />
+                    </LinearGradient>
+                  </TouchableOpacity>
                 </View>
               </View>
             </LinearGradient>
-          </View>
-
-          {/* --- BLOC SOCIAL (STYLE NÉON) --- */}
-          <LinearGradient
-            colors={[NEON_GREEN, NEON_CYAN]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.neonBorderContainerSocial}
-          >
-            <View style={styles.socialSectionInner}>
-              <Text style={styles.sectionTitle}>Ton Code Ami</Text>
-              <TouchableOpacity
-                onPress={copyToClipboard}
-                style={styles.myCodeBox}
-              >
-                <Text style={styles.codeText}>{userProfile.friendCode}</Text>
-                <Ionicons
-                  name="copy-outline"
-                  size={20}
-                  color={NEON_CYAN}
-                  style={{ marginLeft: 10 }}
-                />
-              </TouchableOpacity>
-
-              <Text style={[styles.sectionTitle, { marginTop: 15 }]}>
-                Ajouter un Ami
-              </Text>
-              <View style={styles.searchBoxWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Code Ami (ex: B4N1E7)"
-                  placeholderTextColor={"#94a3b8"}
-                  value={searchCode}
-                  onChangeText={(text) => setSearchCode(text.toUpperCase())}
-                  maxLength={6}
-                />
-                <TouchableOpacity onPress={handleSearchFriend}>
-                  <LinearGradient
-                    colors={[NEON_CYAN, NEON_GREEN]}
-                    style={styles.searchBtnGradient}
-                  >
-                    <Ionicons name="search" size={24} color="#0f172a" />
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </LinearGradient>
-        </ScrollView>
+          </ScrollView>
+        </KeyboardAvoidingView>
 
         {/* --- MODAL PARAMETRES --- */}
         <Modal
@@ -312,7 +322,9 @@ export default function ProfileScreen() {
                 />
               </View>
               <Text style={styles.settingSubtext}>
-                Tes roasts seront visible dans le Feed.
+                {isPublic
+                  ? "Tes roasts seront VISIBLES dans le Feed."
+                  : "Tes roasts seront INVISIBLES dans le Feed."}
               </Text>
               <View style={styles.modalDivider} />
 
