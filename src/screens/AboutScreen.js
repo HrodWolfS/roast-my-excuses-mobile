@@ -1,12 +1,15 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  ImageBackground,
   Image,
+  ImageBackground,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 // On garde les couleurs du Design System pour les éléments
@@ -26,6 +29,12 @@ const TEAM_MEMBERS = [
 ];
 
 export default function AboutScreen() {
+  const navigation = useNavigation(); // Initialize navigation hook
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
   return (
     <ImageBackground
       source={require("../assets/background.jpg")}
@@ -33,10 +42,19 @@ export default function AboutScreen() {
       resizeMode="cover"
     >
       <SafeAreaView style={styles.container}>
+        {/* HEADER NAVIGATION (Fixe) */}
+        <View style={styles.navHeader}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+          >
+            <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
+
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* HEADER */}
+          {/* HEADER LOGO */}
           <View style={styles.header}>
-            {/* REMPLACEMENT DU PLACEHOLDER PAR L'IMAGE */}
             <Image
               source={require("../assets/logo.png")}
               style={styles.logo}
@@ -87,10 +105,22 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
   },
+  navHeader: {
+    width: "100%",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    marginBottom: 10,
+    alignItems: "flex-start", // Aligne le bouton à gauche
+  },
+  backBtn: {
+    padding: 8,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 8,
+  },
   header: {
     alignItems: "center",
     marginBottom: 40,
-    marginTop: 60,
+    marginTop: 0, // Plus besoin de marge énorme
   },
   // NOUVEAU STYLE POUR LE LOGO (Plus de bordure, plus de fond)
   logo: {

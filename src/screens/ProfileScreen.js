@@ -1,25 +1,25 @@
-import React, { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import * as Clipboard from "expo-clipboard";
+import { LinearGradient } from "expo-linear-gradient";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  Alert,
-  Modal,
-  Switch,
-  TextInput,
   ActivityIndicator,
-  ScrollView,
+  Alert,
+  Image,
   ImageBackground,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useDispatch } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
-import { logout } from "../redux/slices/authSlice";
-import * as Clipboard from "expo-clipboard";
-import { Ionicons } from "@expo/vector-icons";
+import { logout, updateProfile } from "../redux/slices/authSlice";
 import api from "../services/api";
-import { LinearGradient } from "expo-linear-gradient";
 
 // --- MAPPING DES IMAGES DE LIGUE ---
 const leagueImages = {
@@ -85,8 +85,16 @@ export default function ProfileScreen() {
     dispatch(logout());
   };
 
-  const toggleSwitch = () => {
-    setIsPublic((prev) => !prev);
+  const toggleSwitch = async () => {
+    try {
+      const newValue = !isPublic;
+      setIsPublic(newValue); // Optimistic UI
+      await dispatch(updateProfile({ isPublic: newValue })).unwrap();
+    } catch (error) {
+      console.error("TOGGLE SWITCH ERROR:", error);
+      setIsPublic(!isPublic); // Rollback if error
+      Alert.alert("Erreur", "Impossible de mettre à jour le profil.");
+    }
   };
 
   const copyToClipboard = async () => {
@@ -120,9 +128,22 @@ export default function ProfileScreen() {
     }
   };
 
-  // Helper pour naviguer et fermer la modale
+  // --- GESTION DU RETOUR SUR LA MODALE ---
+  const shouldReopenModal = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (shouldReopenModal.current) {
+        setModalVisible(true);
+        shouldReopenModal.current = false;
+      }
+    }, [])
+  );
+
+  // Helper pour naviguer et gérer le retour
   const navigateFromModal = (screenName) => {
-    setModalVisible(false);
+    shouldReopenModal.current = true; // On marque qu'on veut rouvrir au retour
+    setModalVisible(false); // On ferme pour laisser voir le nouvel écran
     navigation.navigate(screenName);
   };
 
@@ -575,6 +596,20 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#ffffff1a",
     marginVertical: 20,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ffffff0d",
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: "#E2E8F0", // Blanc cassé lisible
+    fontWeight: "500",
   },
   logoutBtn: {
     backgroundColor: "#e53e3e26",

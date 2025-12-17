@@ -1,6 +1,7 @@
 ﻿import { FontAwesome5 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -21,15 +22,27 @@ export default function FeedScreen() {
   const [feed, setFeed] = useState([]);
   const [activeTab, setActiveTab] = useState("global");
 
+  /* REMOVED: Client-side sorting overrides backend strategy
   const sortByUpvotes = (arr) =>
     [...arr].sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+  */
 
+  // 1. Recharger le feed quand on arrive sur l'écran (Focus)
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(getFeed(activeTab));
+    }, [dispatch, activeTab])
+  );
+
+  // 2. Quand on change d'onglet, on VIDE la liste pour ne pas voir les items de l'autre onglet
   useEffect(() => {
+    setFeed([]); // On clear pour visualiser le chargement
     dispatch(getFeed(activeTab));
-  }, [dispatch, activeTab]);
+  }, [activeTab, dispatch]);
 
   useEffect(() => {
-    setFeed(sortByUpvotes(items || []));
+    // Backend now creates the order [TopRoast, ...Chronological]
+    setFeed(items || []);
   }, [items]);
 
   const onRefresh = () => dispatch(getFeed(activeTab));
@@ -39,9 +52,7 @@ export default function FeedScreen() {
       const res = await api.post(`/feed/${id}/like`);
       const updated = res.data;
       setFeed((prev) =>
-        sortByUpvotes(
-          prev.map((it) => (it.id === id ? { ...it, ...updated } : it))
-        )
+        prev.map((it) => (it.id === id ? { ...it, ...updated } : it))
       );
     } catch (err) {
       console.log("Erreur like", err.response?.data || err.message);
@@ -60,14 +71,28 @@ export default function FeedScreen() {
       String(rawUser).replace(/^@?/, "").toLowerCase() ===
         String(currentUser.userName).replace(/^@?/, "").toLowerCase();
 
+    // Special styling for Top Roast
+    const isTop = item.isTop;
+    const gradientColors = isTop
+      ? ["#FFD700", "#FFA500"] // Gold/Orange for Top Roast
+      : ["#c9ff53", "#22d3ee"]; // Standard Neon
+
     return (
       <LinearGradient
-        colors={["#c9ff53", "#22d3ee"]}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.cardGradientBorder}
       >
         <View style={styles.cardContent}>
+          {/* BADGE TOP ROAST */}
+          {isTop && (
+            <View style={styles.topBadge}>
+              <FontAwesome5 name="trophy" size={14} color="#FFD700" />
+              <Text style={styles.topBadgeText}>ROAST DU MOMENT</Text>
+            </View>
+          )}
+
           <View style={styles.userRow}>
             <Text style={[styles.userName, isMe && styles.userNameMe]}>
               {displayUser}
@@ -225,6 +250,26 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(15, 23, 42, 0.95)", // DARK_CARD equivalent
     borderRadius: 19,
     padding: 14,
+  },
+  topBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+    backgroundColor: "rgba(255, 215, 0, 0.15)", // Gold transparent
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#FFD700",
+    alignSelf: "flex-start",
+  },
+  topBadgeText: {
+    color: "#FFD700",
+    fontSize: 12,
+    fontWeight: "bold",
+    marginLeft: 6,
+    letterSpacing: 1,
   },
   userRow: {
     flexDirection: "row",
