@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -23,9 +24,10 @@ import api from "../services/api";
 // --- MAPPING DES IMAGES DE LIGUE ---
 const leagueImages = {
   Bronze: require("../assets/leagues/ProFlemmard.png"),
-  Silver: require("../assets/leagues/ProEndormi.png"),
+  Silver: require("../assets/leagues/ProCrastinateur.png"),
   Gold: require("../assets/leagues/ProDeborde.png"),
   Diamond: require("../assets/leagues/ProActif.png"),
+  // Fallback
   default: require("../assets/leagues/ProEndormi.png"),
 };
 
@@ -37,6 +39,7 @@ const DARK_CARD = "#0f172ad9";
 
 export default function ProfileScreen() {
   const dispatch = useDispatch();
+  const navigation = useNavigation(); // <--- INITIALISATION DU HOOK
 
   // --- STATES ---
   const [userProfile, setUserProfile] = useState(null);
@@ -123,6 +126,25 @@ export default function ProfileScreen() {
         error.response?.data?.message || "Impossible d'ajouter cet ami.";
       Alert.alert("Oups", message);
     }
+  };
+
+  // --- GESTION DU RETOUR SUR LA MODALE ---
+  const shouldReopenModal = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (shouldReopenModal.current) {
+        setModalVisible(true);
+        shouldReopenModal.current = false;
+      }
+    }, [])
+  );
+
+  // Helper pour naviguer et gérer le retour
+  const navigateFromModal = (screenName) => {
+    shouldReopenModal.current = true; // On marque qu'on veut rouvrir au retour
+    setModalVisible(false); // On ferme pour laisser voir le nouvel écran
+    navigation.navigate(screenName);
   };
 
   if (isLoading) {
@@ -278,6 +300,8 @@ export default function ProfileScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Paramètres</Text>
+
+              {/* Option Profil Public */}
               <View style={styles.settingRow}>
                 <Text style={styles.settingText}>Profil Public</Text>
                 <Switch
@@ -291,6 +315,38 @@ export default function ProfileScreen() {
                 Tes roasts seront visible dans le Feed.
               </Text>
               <View style={styles.modalDivider} />
+
+              {/* --- AJOUT DES LIENS LEGAUX --- */}
+              <View style={{ width: "100%", marginBottom: 15 }}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => navigateFromModal("Terms")}
+                >
+                  <Text style={styles.menuItemText}>
+                    Conditions Générales (CGU)
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color="#A0AEC0" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => navigateFromModal("Privacy")}
+                >
+                  <Text style={styles.menuItemText}>
+                    Politique de Confidentialité
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color="#A0AEC0" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => navigateFromModal("About")}
+                >
+                  <Text style={styles.menuItemText}>À propos & Crédits</Text>
+                  <Ionicons name="chevron-forward" size={20} color="#A0AEC0" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalDivider} />
+
               <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
                 <Text style={styles.logoutText}>Se déconnecter</Text>
               </TouchableOpacity>
@@ -540,6 +596,20 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#ffffff1a",
     marginVertical: 20,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ffffff0d",
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: "#E2E8F0", // Blanc cassé lisible
+    fontWeight: "500",
   },
   logoutBtn: {
     backgroundColor: "#e53e3e26",
