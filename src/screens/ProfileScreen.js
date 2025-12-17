@@ -14,6 +14,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { useDispatch } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
 import { logout } from "../redux/slices/authSlice";
 import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,9 +24,10 @@ import { LinearGradient } from "expo-linear-gradient";
 // --- MAPPING DES IMAGES DE LIGUE ---
 const leagueImages = {
   Bronze: require("../assets/leagues/ProFlemmard.png"),
-  Silver: require("../assets/leagues/ProEndormi.png"),
+  Silver: require("../assets/leagues/ProCrastinateur.png"),
   Gold: require("../assets/leagues/ProDeborde.png"),
   Diamond: require("../assets/leagues/ProActif.png"),
+  // Fallback
   default: require("../assets/leagues/ProEndormi.png"),
 };
 
@@ -37,6 +39,7 @@ const DARK_CARD = "#0f172ad9";
 
 export default function ProfileScreen() {
   const dispatch = useDispatch();
+  const navigation = useNavigation(); // <--- INITIALISATION DU HOOK
 
   // --- STATES ---
   const [userProfile, setUserProfile] = useState(null);
@@ -94,7 +97,7 @@ export default function ProfileScreen() {
   };
 
   const handleSearchFriend = async () => {
-    // vérif 
+    // vérif
     if (searchCode.length < 6) {
       Alert.alert("Trop court", "Le code ami doit faire 6 caractères.");
       return;
@@ -102,19 +105,25 @@ export default function ProfileScreen() {
 
     try {
       // call backend pour add l'ami direct
-      const response = await api.post("/users/friends", { 
-        friendCode: searchCode 
+      const response = await api.post("/users/friends", {
+        friendCode: searchCode,
       });
 
-      // Succès 
+      // Succès
       Alert.alert("Nouveau Pote ! 🤝", response.data.message);
-      setSearchCode(""); 
-
+      setSearchCode("");
     } catch (error) {
       // Gestion des erreurs (Code faux, déjà amis, auto-ajout...)
-      const message = error.response?.data?.message || "Impossible d'ajouter cet ami.";
+      const message =
+        error.response?.data?.message || "Impossible d'ajouter cet ami.";
       Alert.alert("Oups", message);
     }
+  };
+
+  // Helper pour naviguer et fermer la modale
+  const navigateFromModal = (screenName) => {
+    setModalVisible(false);
+    navigation.navigate(screenName);
   };
 
   if (isLoading) {
@@ -137,9 +146,7 @@ export default function ProfileScreen() {
       resizeMode="cover"
       backgroundColor={DARK_BG}
     >
-      
       <View style={styles.mainContainer}>
-        
         {/* HEADER */}
         <View style={styles.header}>
           <Image
@@ -179,7 +186,6 @@ export default function ProfileScreen() {
               style={styles.neonBorderContainer}
             >
               <View style={styles.statsContainer}>
-
                 {/* LIGNE 1 : Points & Niveau */}
                 <View style={styles.statsRow}>
                   <View style={styles.statItem}>
@@ -273,6 +279,8 @@ export default function ProfileScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Paramètres</Text>
+
+              {/* Option Profil Public */}
               <View style={styles.settingRow}>
                 <Text style={styles.settingText}>Profil Public</Text>
                 <Switch
@@ -286,6 +294,38 @@ export default function ProfileScreen() {
                 Tes roasts seront visible dans le Feed.
               </Text>
               <View style={styles.modalDivider} />
+
+              {/* --- AJOUT DES LIENS LEGAUX --- */}
+              <View style={{ width: "100%", marginBottom: 15 }}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => navigateFromModal("Terms")}
+                >
+                  <Text style={styles.menuItemText}>
+                    Conditions Générales (CGU)
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color="#A0AEC0" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => navigateFromModal("Privacy")}
+                >
+                  <Text style={styles.menuItemText}>
+                    Politique de Confidentialité
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color="#A0AEC0" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => navigateFromModal("About")}
+                >
+                  <Text style={styles.menuItemText}>À propos & Crédits</Text>
+                  <Ionicons name="chevron-forward" size={20} color="#A0AEC0" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalDivider} />
+
               <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
                 <Text style={styles.logoutText}>Se déconnecter</Text>
               </TouchableOpacity>
@@ -375,7 +415,7 @@ const styles = StyleSheet.create({
     padding: 1.5,
     shadowColor: NEON_CYAN,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2, 
+    shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
   },

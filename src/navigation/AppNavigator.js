@@ -26,6 +26,11 @@ import RoastResultScreen from "../screens/RoastResultScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
+// --- Settings legal ---
+import TermsScreen from "../screens/TermsScreen";
+import PrivacyScreen from "../screens/PrivacyScreen";
+import AboutScreen from "../screens/AboutScreen";
+
 // --- 3. CONFIGURATION ---
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -250,6 +255,40 @@ export default function AppNavigator() {
           // --- UTILISATEUR CONNECTÉ ---
           <>
             <Stack.Screen name="Main" component={MainAppTabs} />
+            {/* Pages Paramètres & Légal (Header activé pour le bouton retour) */}
+            <Stack.Screen
+              name="Terms"
+              component={TermsScreen}
+              options={{
+                headerShown: true,
+                title: "CGU",
+                headerTransparent: true, // Couleur de ton Design System
+                headerTintColor: "#fff", // Texte blanc
+                headerBackTitleVisible: false, // Cache le texte "Retour" sur iOS (plus propre)
+              }}
+            />
+            <Stack.Screen
+              name="Privacy"
+              component={PrivacyScreen}
+              options={{
+                headerShown: true,
+                title: "Confidentialité",
+                headerTransparent: true,
+                headerTintColor: "#fff",
+                headerBackTitleVisible: false,
+              }}
+            />
+            <Stack.Screen
+              name="About"
+              component={AboutScreen}
+              options={{
+                headerShown: true,
+                title: "À propos",
+                headerTransparent: true,
+                headerTintColor: "#fff",
+                headerBackTitleVisible: false,
+              }}
+            />
             <Stack.Group
               screenOptions={{ presentation: "modal", headerShown: false }}
             >
