@@ -55,17 +55,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     alignItems: "center",
+    borderRadius: 8,
   },
   tabButtonActive: {
-    backgroundColor: "rgba(255,255,255,0.25)",
+    backgroundColor: "#c9ff53",
   },
   tabText: {
-    color: "rgba(255,255,255,0.8)",
-    fontWeight: "bold",
+    color: "#9fb6c9",
+    fontWeight: "600",
   },
   tabTextActive: {
-    color: "white",
-    fontWeight: "800",
+    color: "#0f172a",
+    fontWeight: "bold",
   },
 
   // --- ROW STYLES ---

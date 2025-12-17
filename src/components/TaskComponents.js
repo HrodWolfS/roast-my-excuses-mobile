@@ -64,17 +64,23 @@ export const EmptyState = ({ filter, navigation }) => {
 const styles = StyleSheet.create({
   // FilterTab Styles
   tab: {
-    marginRight: 15,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 8,
   },
-  activeTab: { backgroundColor: "#E74C3C", borderColor: "#E74C3C" },
-  tabText: { fontWeight: "600", color: "#E0E0E0" },
-  activeTabText: { color: "white" },
+  activeTab: {
+    backgroundColor: "#c9ff53",
+    borderColor: "transparent", // No border needed for active state in new design or maybe it is? Leaderboard just has bg.
+  },
+  tabText: {
+    color: "#9fb6c9",
+    fontWeight: "600",
+  },
+  activeTabText: {
+    color: "#0f172a",
+    fontWeight: "bold",
+  },
 
   // StatusBadge Styles
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },

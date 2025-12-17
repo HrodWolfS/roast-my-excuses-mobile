@@ -1,14 +1,14 @@
-﻿import React, { useEffect, useState } from "react";
+﻿import { FontAwesome5 } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import {
-  ImageBackground,
+  FlatList,
   Image,
+  ImageBackground,
+  Pressable,
   StyleSheet,
   Text,
   View,
-  FlatList,
-  Pressable,
 } from "react-native";
-import { FontAwesome5 } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { getFeed } from "../redux/slices/feedSlice";
 import api from "../services/api";
@@ -96,7 +96,7 @@ export default function FeedScreen() {
       <View style={styles.overlay}>
         <View style={styles.logoWrap}>
           <Image
-            source={require("../assets/sticker_1.webp")}
+            source={require("../assets/logo.png")}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -150,7 +150,9 @@ export default function FeedScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={styles.emptyTitle}>
-                {activeTab === "friends" ? "Aucun roast d'amis" : "Rien à afficher"}
+                {activeTab === "friends"
+                  ? "Aucun roast d'amis"
+                  : "Rien à afficher"}
               </Text>
               <Text style={styles.emptyText}>
                 {activeTab === "friends"
@@ -172,17 +174,30 @@ const styles = StyleSheet.create({
   logo: { width: 160, height: 60 },
   tabs: {
     flexDirection: "row",
-    backgroundColor: "rgba(0, 0, 0, 0.41)",
+    backgroundColor: "rgba(13, 18, 31, 0.6)",
     borderRadius: 12,
-    overflow: "hidden",
+    padding: 4,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#BEF264",
-    marginBottom: 12,
+    borderColor: "#c9ff53",
   },
-  tabButton: { flex: 1, paddingVertical: 12, alignItems: "center" },
-  tabButtonActive: { backgroundColor: "rgba(255,255,255,0.25)" },
-  tabText: { color: "rgba(255,255,255,0.8)", fontWeight: "bold" },
-  tabTextActive: { color: "white", fontWeight: "800" },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 8,
+  },
+  tabButtonActive: {
+    backgroundColor: "#c9ff53",
+  },
+  tabText: {
+    color: "#9fb6c9",
+    fontWeight: "600",
+  },
+  tabTextActive: {
+    color: "#0f172a",
+    fontWeight: "bold",
+  },
   list: { paddingBottom: 30 },
   listEmpty: { flexGrow: 1, justifyContent: "center" },
   card: {
@@ -207,7 +222,12 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   taskText: { color: "#9aa0a6", fontSize: 12, marginBottom: 4 },
-  roastText: { color: "#CFFFE0", fontSize: 14, fontWeight: "800", lineHeight: 20 },
+  roastText: {
+    color: "#CFFFE0",
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 20,
+  },
   likeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   likeText: { color: "#fff", fontWeight: "700" },
   empty: {
@@ -217,6 +237,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.25)",
     alignItems: "flex-start",
   },
-  emptyTitle: { color: "white", fontWeight: "800", marginBottom: 6, textAlign: "left" },
+  emptyTitle: {
+    color: "white",
+    fontWeight: "800",
+    marginBottom: 6,
+    textAlign: "left",
+  },
   emptyText: { color: "rgba(255,255,255,0.85)", textAlign: "left" },
 });

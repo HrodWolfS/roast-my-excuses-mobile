@@ -199,7 +199,13 @@ export default function LeaderboardScreen() {
       />
 
       <View style={styles.content}>
-        <Text style={styles.title}>Classement</Text>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
         <View style={styles.tabs}>
           <TabButton
@@ -224,7 +230,7 @@ export default function LeaderboardScreen() {
           renderItem={({ item }) => (
             <LeaderboardRow
               item={item}
-              isMe={item.username === currentUsername} 
+              isMe={item.username === currentUsername}
             />
           )}
           getItemLayout={getItemLayout}
@@ -268,7 +274,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: 60,
+    paddingTop: 50,
     paddingHorizontal: 16,
   },
   title: {
@@ -277,16 +283,25 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginBottom: 12,
   },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  logo: {
+    width: 160,
+    height: 60,
+  },
   tabs: {
     flexDirection: "row",
-    backgroundColor: "rgba(0, 0, 0, 0.41)",
+    backgroundColor: "rgba(13, 18, 31, 0.6)",
     borderRadius: 12,
-    overflow: "hidden",
+    padding: 4,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#BEF264",
+    borderColor: "#c9ff53",
   },
-  list: { 
-    flex: 1 
+  list: {
+    flex: 1,
   },
   listContent: {
     paddingBottom: 24,
@@ -303,20 +318,20 @@ const styles = StyleSheet.create({
     height: 100,
     marginTop: 20,
     marginBottom: 20,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   empty: {
     marginTop: 18,
     padding: 16,
     borderRadius: 12,
   },
-  emptyTitle: { 
-    color: "white", 
-    fontWeight: "800", 
-    marginBottom: 6 
+  emptyTitle: {
+    color: "white",
+    fontWeight: "800",
+    marginBottom: 6,
   },
-  emptyText: { 
-    color: "rgba(255,255,255,0.85)" 
+  emptyText: {
+    color: "rgba(255,255,255,0.85)",
   },
   loadingOverlay: {
     flex: 1,

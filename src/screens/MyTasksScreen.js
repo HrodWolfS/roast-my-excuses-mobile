@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
+  Image,
   ImageBackground,
   Modal,
   RefreshControl,
@@ -83,7 +84,13 @@ export default function TasksScreen({ navigation }) {
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.headerTitle}>Mes Tâches</Text>
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../assets/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
 
           {/* --- FILTER TABS --- */}
           <View style={styles.tabsContainer}>
@@ -169,7 +176,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingTop: 60,
+    paddingTop: 50,
   },
   headerTitle: {
     fontSize: 28,
@@ -180,10 +187,23 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logo: {
+    width: 160,
+    height: 60,
+  },
   tabsContainer: {
     flexDirection: "row",
-    paddingHorizontal: 20,
+    backgroundColor: "rgba(13, 18, 31, 0.6)",
+    borderRadius: 12,
+    padding: 4,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#c9ff53",
+    marginHorizontal: 20,
   },
   listContent: {
     paddingHorizontal: 20,
