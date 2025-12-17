@@ -1,6 +1,8 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
+  Image,
   ImageBackground,
   Modal,
   RefreshControl,
@@ -55,24 +57,31 @@ export default function TasksScreen({ navigation }) {
   };
 
   const renderTaskItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => handleTaskPress(item)}
-      activeOpacity={0.8}
+    <LinearGradient
+      colors={["#c9ff53", "#22d3ee"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.cardGradientBorder}
     >
-      <View style={styles.cardHeader}>
-        <Text style={styles.taskTitle} numberOfLines={1}>
-          {item.description}
+      <TouchableOpacity
+        style={styles.cardContent}
+        onPress={() => handleTaskPress(item)}
+        activeOpacity={0.8}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={styles.taskTitle} numberOfLines={1}>
+            {item.description}
+          </Text>
+          <StatusBadge status={item.status} />
+        </View>
+        <Text style={styles.taskExcuse} numberOfLines={2}>
+          💭 "{item.excuse}"
         </Text>
-        <StatusBadge status={item.status} />
-      </View>
-      <Text style={styles.taskExcuse} numberOfLines={2}>
-        💭 "{item.excuse}"
-      </Text>
-      {item.pointsEarned > 0 && (
-        <Text style={styles.points}>+{item.pointsEarned} pts</Text>
-      )}
-    </TouchableOpacity>
+        {item.pointsEarned > 0 && (
+          <Text style={styles.points}>+{item.pointsEarned} pts</Text>
+        )}
+      </TouchableOpacity>
+    </LinearGradient>
   );
 
   return (
@@ -83,7 +92,13 @@ export default function TasksScreen({ navigation }) {
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.headerTitle}>Mes Tâches</Text>
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../assets/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
 
           {/* --- FILTER TABS --- */}
           <View style={styles.tabsContainer}>
@@ -169,7 +184,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingTop: 60,
+    paddingTop: 50,
   },
   headerTitle: {
     fontSize: 28,
@@ -180,22 +195,41 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logo: {
+    width: 160,
+    height: 60,
+  },
   tabsContainer: {
     flexDirection: "row",
-    paddingHorizontal: 20,
+    backgroundColor: "rgba(13, 18, 31, 0.6)",
+    borderRadius: 12,
+    padding: 4,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#c9ff53",
+    marginHorizontal: 20,
   },
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 100,
   },
-  card: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    padding: 15,
-    borderRadius: 12,
+  cardGradientBorder: {
+    borderRadius: 14,
+    padding: 1.5,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
+    shadowColor: "#c9ff53",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    elevation: 3,
+  },
+  cardContent: {
+    backgroundColor: "rgba(15, 23, 42, 0.9)", // Dark background
+    padding: 15,
+    borderRadius: 13, // slightly less than outer
   },
   cardHeader: {
     flexDirection: "row",
