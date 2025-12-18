@@ -90,10 +90,12 @@ export default function LeaderboardScreen() {
 
   // Mapping des ligues vers les images
   const LEAGUE_BANNERS = {
-    Bronze: require("../assets/leagues/ProEndormi.png"),
+    Bronze: require("../assets/leagues/ProFlemmard.png"),
     Silver: require("../assets/leagues/ProCrastinateur.png"),
-    Gold: require("../assets/leagues/ProFlemmard.png"),
+    Gold: require("../assets/leagues/ProDeborde.png"),
     Diamond: require("../assets/leagues/ProActif.png"),
+    // Fallback
+    default: require("../assets/leagues/ProEndormi.png"),
   };
 
   const currentLeague =
