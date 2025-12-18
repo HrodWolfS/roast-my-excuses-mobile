@@ -145,9 +145,11 @@ export default function RoastResultScreen({ navigation }) {
               onPress={handleGoHome}
               style={styles.secondaryButton}
             >
-              {currentTask.type === "challenge"
-                ? "Je préfère rien faire, comme toujours."
-                : "J'ai compris, je retourne à ma médiocrité."}
+              <Text style={styles.secondaryButtonText}>
+                {currentTask.type === "challenge"
+                  ? "Je préfère rien faire, comme toujours."
+                  : "J'ai compris, je retourne à ma médiocrité."}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
