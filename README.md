@@ -1,71 +1,106 @@
-# Roast My Excuses - Mobile App
+# 🔥 Roast My Excuses - Mobile App (MVP)
 
-L'application mobile React Native / Expo pour se faire roaster ses excuses.
+> **"Arrête de te mentir. Laisse l'IA le faire pour toi."**
 
-## Installation Rapide
+Bienvenue sur le repo mobile de **Roast My Excuses**. Une application conçue pour humilier ta procrastination avec humour et bienveillance (ou pas).
 
-1. **Pré-requis**
+---
 
-   - Installez l'application **Expo Go** sur votre téléphone (App Store / Play Store).
-   - Assurez-vous d'avoir Node.js installé.
+## 📱 Fonctionnalités Clés (MVP)
 
-2. **Installation**
+### 1. **L'IA Roast Master (Double Personnalité)**
 
-   ```bash
-   git clone https://github.com/HrodWolfS/roast-my-excuses-mobile.git
-   cd roast-my-excuses-mobile
-   npm install
-   ```
+- **Mode Roasty** 💀 : Le mode "Sauvage". Envoie ton excuse, reçois une humiliation technique et violente. Zéro pitié.
+- **Mode Challenge** 🏋️‍♂️ : Le mode "Coach Exaspéré". L'IA se moque de toi gentiment et te donne 3 étapes simples pour démarrer.
 
-3. **Lancer l'application**
+### 2. **Le Feed de la Honte**
 
-   ```bash
-   npx expo start
-   ```
+- **Top Roast** 🏆 : Le roast le plus liké est épinglé en mode "Gold" tout en haut. La gloire par l'humiliation.
+- **Fil Chronologique** : Découvre les dernières excuses des autres utilisateurs.
+- **Onglet Amis** : Un fil privé réservé à tes potes (si tu en as, sinon c'est vide comme ta vie sociale).
 
-   Scannez le QR Code avec votre téléphone.
+### 3. **Classement & Gamification**
 
-## Architecture (Où coder ?)
+- **Leaderboard** : Grimpe les échelons de la "Honte" (ProEndormi, ProCrastinateur, ProFlemmard, ProActif).
+- **Series** : Preserve ta série de roasts ou abandonne comme d'habitude.
+- **Points** : Gagne des points en essayant d'être productif pour une fois.
 
-Tout se passe dans le dossier src/ :
+### 4. **Confidentialité Totale**
 
-src/screens/ : Les pages de l'app (Login, Feed, Create...)
+- **Mode Fantôme** 👻 : Un switch global pour disparaître du feed si tu as trop honte.
+- **Discrétion par Tâche** 👁️ : Cache un roast spécifique si celui là piquer trop pour toi.
 
-src/navigation/ : La gestion des routes (AppNavigator)
+---
 
-src/components/ : Les petits bouts d'interface réutilisables
+## 🛠 Stack Technique
 
-src/redux/ : La gestion des données (User, Tasks)
+- **Framework** : React Native (Expo SDK 50+)
+- **State Management** : Redux Toolkit (avec Persist)
+- **UI/UX** : Expo Linear Gradient, Vector Icons, Styles néons custom
+- **Navigation** : React Navigation (Stack)
+- **Backend Connexion** : Axios
 
-src/services/ : Les appels API vers le backend
+---
 
+## 🚀 Installation & Lancement
 
-///////////////////////////////////
-//                               //
-//   Guide des Tests Frontend    //
-//                               //
-///////////////////////////////////
+### 1. Pré-requis
 
-Pour assurer la qualité et la stabilité de l'application, chaque composant ou fonction logique doit être accompagné de tests.
+- **Node.js** (v18+)
+- **Expo Go** installé sur ton téléphone (ou Simulateur iOS/Android).
+- Le backend (`roast-my-excuses-backend`) doit tourner en local ou être déployé.
 
-### Outils
+### 2. Setup
 
-Nous utilisons **Jest** (inclus par défaut avec Expo/React Native) et **React Native Testing Library** pour écrire des tests qui simulent le comportement des utilisateurs.
+```bash
+# Cloner le repo
+git clone https://github.com/HrodWolfS/roast-my-excuses-mobile.git
+cd roast-my-excuses-mobile
 
-### Où créer les tests ?
+# Installer les dépendances
+npm install
+```
 
-La convention est de créer un dossier `__tests__` à la racine du dossier `src/` et d'y répliquer la structure des dossiers du code source.
+### 3. Configuration Env
 
-**Exemples :**
-*   Pour tester `src/components/MyButton.js`, créez le fichier `src/__tests__/components/MyButton.test.js`.
-*   Pour tester une fonction dans `src/redux/userSlice.js`, créez `src/__tests__/redux/userSlice.test.js`.
+Crée un fichier `.env` à la racine (ou utilise `EXPO_PUBLIC_API_URL`) :
 
-> **Convention de nommage :** Le nom du fichier de test doit être `NomDuFichier.test.js`.
+```env
+EXPO_PUBLIC_API_URL=http://TON_IP_LOCALE:3000
+```
 
-### Comment lancer les tests ?
+### 4. Démarrage
 
-Pour lancer l'ensemble des tests et vérifier que rien n'est cassé :
+```bash
+npx expo start
+```
+
+Scanne le QR Code avec Expo Go.
+
+---
+
+## 🧪 Tests
+
+Le projet utilise **Jest** pour les tests unitaires.
 
 ```bash
 npm test
 ```
+
+---
+
+## 📂 Structure du Projet
+
+```
+src/
+├── components/   # Boutons, Cartes, Modales réutilisables
+├── navigation/   # AppNavigator (Routes)
+├── redux/        # Slices (Auth, Feed, Tasks)
+├── screens/      # Écrans (Login, Feed, Profile...)
+├── services/     # API (Axios + Interceptors)
+└── constants/    # Textes légaux, thèmes
+```
+
+---
+
+_Fait avec ❤️ et beaucoup de sarcasme pour s'adresser a n'importe qui, qui souhaite faire n'importe quoi._
